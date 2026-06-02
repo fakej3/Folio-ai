@@ -241,6 +241,7 @@ const TIMEOUT_MS     = 80000;       // 80 s per call
 // ── State ─────────────────────────────────────────────────────────────────────
 let inputText = "", quickData = [], explainedData = [], charData = [];
 let _savedKey = "";
+let chunkSummariesCache = [];
 
 // ── Load saved key ────────────────────────────────────────────────────────────
 try {
