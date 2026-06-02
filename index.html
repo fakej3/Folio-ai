@@ -611,13 +611,15 @@ async function runPipeline() {
 
     // Phase 1: chunk summaries
     const chunkSummaries = [];
+
     for (let i = 0; i < chunks.length; i++) {
-      const pct = 10 + Math.round((i / chunks.length) * 65);
-      setGen(`Summarising section ${i+1} / ${chunks.length}…`, pct);
+      ...
       const summary = await summariseChunk(chunks[i], i, chunks.length);
       chunkSummaries.push(summary);
-    }
+     }
 
+     chunkSummariesCache = chunkSummaries;
+ 
     // Phase 2: final synthesis
     setGen("Synthesising final summary…", 80);
     await generateFinalSummary(chunkSummaries, document.getElementById("bookTitle").value.trim());
