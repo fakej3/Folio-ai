@@ -508,14 +508,14 @@ function extractJSON(raw) {
 // 2. Feed all chunk summaries into a final synthesis call that outputs the full JSON.
 
 async function summariseChunk(chunk, idx, total) {
-  const prompt = [
-    "Summarise the following passage in 8-12 detailed sentences.",
-    "Focus on the key ideas, concepts, arguments, and any notable people mentioned.",
-    "Capture key ideas, examples, lessons, arguments, and insights. Be detailed but concise. No filler."
-    "",
-    `[Passage ${idx+1}/${total}]`,
-    chunk
-  ].join("\n");
+const prompt = [
+  "Summarise the following passage in 8-12 detailed sentences.",
+  "Focus on the key ideas, concepts, arguments, and any notable people mentioned.",
+  "Capture key ideas, examples, lessons, arguments, and insights. Be detailed but concise. No filler.",
+  "",
+  `[Passage ${idx+1}/${total}]`,
+  chunk
+].join("\n");
 
   return geminiCall(prompt, CHUNK_SUMMARY_MAX_TOKENS);
 }
