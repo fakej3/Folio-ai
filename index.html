@@ -613,7 +613,6 @@ async function runPipeline() {
     const chunkSummaries = [];
 
     for (let i = 0; i < chunks.length; i++) {
-      ...
       const summary = await summariseChunk(chunks[i], i, chunks.length);
       chunkSummaries.push(summary);
      }
