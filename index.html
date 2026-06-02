@@ -509,9 +509,9 @@ function extractJSON(raw) {
 
 async function summariseChunk(chunk, idx, total) {
   const prompt = [
-    "Summarise the following passage in 3-5 concise sentences.",
+    "Summarise the following passage in 8-12 detailed sentences.",
     "Focus on the key ideas, concepts, arguments, and any notable people mentioned.",
-    "Be factual and dense. No filler. No preamble. Just the summary.",
+    "Capture key ideas, examples, lessons, arguments, and insights. Be detailed but concise. No filler."
     "",
     `[Passage ${idx+1}/${total}]`,
     chunk
@@ -539,7 +539,7 @@ async function generateFinalSummary(chunkSummaries, bookTitle) {
     "    {",
     '      "heading": "2-5 word topic label",',
     '      "chips": ["keyword1", "keyword2", "keyword3"],',
-    '      "explained": "2-3 plain English sentences explaining this topic."',
+    '      "explained": "4-6 detailed sentences explaining the topic, why it matters, and how it connects to the book."',
     "    }",
     "  ],",
     '  "characters": [',
@@ -548,9 +548,9 @@ async function generateFinalSummary(chunkSummaries, bookTitle) {
     "}",
     "",
     "RULES:",
-    "1. sections: 10-20 items covering EVERY major topic, concept, lesson, or chapter.",
+    "1. sections: 15-25 items covering EVERY major topic, concept, lesson, chapter, and important sub-topic.",
     "2. heading: 2-5 words, descriptive like a chapter title.",
-    "3. chips: 3-7 ultra-short keywords or concepts (1-4 words each).",
+    "3. chips: 5-10 important keywords, concepts, techniques, lessons, or examples.",
     "4. explained: 2-3 plain English sentences. Self-contained — reader needs no other context.",
     "5. characters: real people, authors, or figures. Empty array [] if none are relevant.",
     "6. Start your response with { and nothing else.",
