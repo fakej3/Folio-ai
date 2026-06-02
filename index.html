@@ -231,7 +231,7 @@ const MAX_FILE_MB    = 25;
 const MAX_PAGES      = 300;
 const MIN_TEXT_CHARS = 200;         // below this → OCR mode
 const OCR_SCALE      = 2.0;         // render scale for Tesseract
-const WORDS_PER_CHUNK = 700;        // for raw-word fallback
+const WORDS_PER_CHUNK = 2500;        // for raw-word fallback
 const GEMINI_MODEL = "gemini-2.5-flash-lite";
 const CHUNK_SUMMARY_MAX_TOKENS = 400;
 const FINAL_SUMMARY_MAX_TOKENS = 2048;
@@ -466,12 +466,30 @@ async function geminiCall(prompt, maxTokens = FINAL_SUMMARY_MAX_TOKENS) {
       clearTimeout(timer);
 
       if (!res.ok) {
-        let msg = "Gemini API error " + res.status;
-        try { const e = await res.json(); msg = e?.error?.message || msg; } catch {}
-        // 429 / 5xx → retry; 4xx (bad key etc.) → throw immediately
-        if (res.status === 429 || res.status >= 500) throw new Error(msg);
-        throw new Error(msg); // non-retryable for other 4xx
-      }
+  let msg = "Gemini API error " + res.status;
+  try {
+    const e = await res.json();
+    msg = e?.error?.message || msg;
+  } catch {}
+
+  if (
+    res.status === 429 ||
+    msg.includes("Quota exceeded") ||
+    msg.includes("high demand")
+  ) {
+    const wait = Math.min(attempt * 10000, 30000);
+
+    setGen(
+      `Gemini quota reached. Waiting ${wait / 1000}s before retry...`,
+      null
+    );
+
+    await new Promise(r => setTimeout(r, wait));
+    continue;
+  }
+
+  throw new Error(msg);
+}
 
       const data = await res.json();
       const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
