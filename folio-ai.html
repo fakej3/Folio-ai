@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Folio AI</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+</script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#030712;color:#e2e8f0;font-family:system-ui,sans-serif;min-height:100vh}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.spin{animation:spin 0.8s linear infinite;display:inline-block}
+.fadein{animation:fadeIn 0.3s ease forwards}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:#1e293b;border-radius:3px}
+
+header{border-bottom:1px solid #0f172a;padding:13px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;background:#030712}
+.logo{display:flex;align-items:center;gap:8px}
+.logo-icon{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,#4285f4,#34a853);display:flex;align-items:center;justify-content:center}
+.logo-name{font-size:15px;font-weight:700;color:#e2e8f0;font-family:Georgia,serif;letter-spacing:-0.02em}
+.logo-ai{font-size:9px;color:#4285f4;font-weight:800;letter-spacing:0.12em;font-family:monospace}
+.model-tag{font-size:10px;color:#1e3a5f;font-family:monospace;letter-spacing:0.06em;text-transform:uppercase}
+
+main{max-width:860px;margin:0 auto;padding:24px 16px}
+.card{background:#080f1e;border:1px solid #1e293b;border-radius:13px;padding:18px 22px;margin-bottom:12px}
+.card-label{font-size:10px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:#475569;font-family:monospace;margin-bottom:10px}
+
+input[type=text],input[type=password]{background:#0a1628;border:1px solid #1e293b;border-radius:8px;color:#e2e8f0;font-size:13px;padding:9px 36px 9px 12px;outline:none;font-family:monospace;width:100%}
+input[type=text]:focus,input[type=password]:focus{border-color:#4285f4}
+
+.btn{display:inline-flex;align-items:center;gap:7px;border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:700;padding:9px 18px;cursor:pointer;transition:all 0.15s;font-family:system-ui,sans-serif}
+.btn-indigo{background:linear-gradient(135deg,#4285f4,#34a853);box-shadow:0 4px 18px rgba(66,133,244,0.3)}
+.btn-indigo:hover{box-shadow:0 6px 22px rgba(66,133,244,0.45);transform:translateY(-1px)}
+.btn-indigo:disabled{background:#1e3a5f;box-shadow:none;cursor:not-allowed;transform:none;opacity:0.6}
+.btn-save{background:#4285f4}
+.btn-saved{background:#14532d;border:1px solid #166534;color:#fff}
+.btn-upload{background:#4285f4}
+.btn-upload:disabled{background:#1e293b;cursor:not-allowed;opacity:0.6}
+
+.btn-copy{display:inline-flex;align-items:center;gap:6px;background:#1e293b;border:1px solid #334155;border-radius:7px;color:#94a3b8;font-size:11px;font-weight:600;padding:5px 12px;cursor:pointer;transition:all 0.15s;flex-shrink:0}
+.btn-copy:hover{background:#334155;color:#e2e8f0}
+
+.tab-bar{display:flex;gap:3px;background:#080f1e;border:1px solid #1e293b;border-radius:11px;padding:4px;width:fit-content;margin-bottom:18px}
+.tab{background:transparent;border:none;border-radius:8px;color:#475569;font-size:12px;font-weight:600;padding:7px 15px;cursor:pointer;transition:all 0.15s;white-space:nowrap;font-family:system-ui,sans-serif}
+.tab.active{background:#1e293b;color:#e2e8f0}
+
+.panel{background:#080f1e;border:1px solid #1e293b;border-radius:14px;overflow:hidden}
+.panel-head{padding:12px 18px;border-bottom:1px solid #1e293b;background:#0a1628;display:flex;align-items:center;justify-content:space-between}
+.panel-badge{font-size:9px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;padding:2px 7px;border-radius:4px;font-family:monospace}
+.panel-title{font-size:14px;font-weight:700;color:#cbd5e1;font-family:Georgia,serif;margin-left:8px}
+.panel-body{padding:20px 22px}
+
+.progress-bar{height:2px;background:#1e293b;border-radius:99px;overflow:hidden;margin-top:8px}
+.progress-fill{height:100%;background:linear-gradient(90deg,#4285f4,#34a853);border-radius:99px;transition:width 0.3s ease}
+
+.error-box{background:#1a0808;border:1px solid #7f1d1d;border-radius:10px;padding:12px 16px;color:#f87171;font-size:12px;margin-bottom:14px;font-family:monospace;display:flex;gap:8px;align-items:flex-start}
+.info-box{background:#0f1a2e;border:1px solid #1e3a5f;border-radius:10px;padding:10px 14px;color:#64748b;font-size:11px;margin-bottom:14px;font-family:monospace}
+.toast{position:fixed;bottom:24px;right:24px;background:#16a34a;color:#fff;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;box-shadow:0 4px 20px rgba(22,163,74,0.4);transition:all 0.2s;pointer-events:none;z-index:999}
+
+/* Quick ref */
+.sections-grid{display:flex;flex-direction:column;gap:10px}
+.section-block{background:#0a1628;border:1px solid #1e293b;border-radius:10px;padding:12px 16px}
+.section-heading{font-size:12px;font-weight:800;color:#4285f4;margin-bottom:8px;letter-spacing:0.03em}
+.section-points{display:flex;flex-wrap:wrap;gap:6px}
+.point-chip{background:#1e293b;border:1px solid #334155;border-radius:6px;padding:4px 10px;font-size:12px;color:#94a3b8;font-family:Georgia,serif}
+
+/* Explained */
+.explained-list{display:flex;flex-direction:column;gap:12px}
+.explained-item{border-left:2px solid #4285f4;padding-left:14px;padding-top:2px;padding-bottom:2px}
+.explained-heading{font-size:13px;font-weight:700;color:#e2e8f0;margin-bottom:4px}
+.explained-body{font-size:13px;color:#64748b;line-height:1.65;font-family:Georgia,serif}
+
+/* People */
+.char-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.char-card{background:#080f1e;border:1px solid #1e293b;border-radius:11px;padding:13px 15px;display:flex;gap:11px}
+.char-avatar{width:34px;height:34px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;font-family:monospace}
+.char-name{font-size:13px;font-weight:700;color:#e2e8f0}
+.char-role{font-size:11px;color:#475569;margin-top:2px}
+.char-trait{font-size:11px;font-style:italic;margin-top:4px;font-family:Georgia,serif}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+      </svg>
+    </div>
+    <span class="logo-name">Folio</span>
+    <span class="logo-ai">AI</span>
+  </div>
+  <span class="model-tag">Gemini · Flash</span>
+</header>
+
+<main>
+
+<!-- API Key -->
+<div class="card">
+  <div class="card-label">Google Gemini API Key</div>
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+    <div style="flex:1;min-width:200px;position:relative;display:flex;align-items:center">
+      <input type="password" id="apiKeyInput" placeholder="AIza..." autocomplete="off"/>
+      <button id="toggleKey" onclick="toggleKeyVis()" style="position:absolute;right:10px;background:none;border:none;color:#475569;cursor:pointer;padding:0;display:flex;align-items:center">
+        <svg id="eyeIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+        </svg>
+      </button>
+    </div>
+    <button id="saveKeyBtn" class="btn btn-save" onclick="saveKey()">Save Key</button>
+  </div>
+  <div style="font-size:11px;color:#334155;margin-top:8px;font-family:monospace">
+    Free key at <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:#4285f4;text-decoration:none">aistudio.google.com</a> · Stored in this tab only
+  </div>
+</div>
+
+<!-- Upload PDF -->
+<div class="card">
+  <div class="card-label">Upload PDF</div>
+
+  <!-- Real button, not label trick — works on file:// -->
+  <label style="position:relative;display:inline-flex;align-items:center;gap:7px;background:#4285f4;border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:700;padding:9px 18px;cursor:pointer;transition:all 0.15s;user-select:none" id="uploadBtn">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+      <polyline points="14 2 14 8 20 8"/>
+      <line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>
+    </svg>
+    Choose PDF File
+    <input type="file" id="fileInput" accept="application/pdf,.pdf" onchange="handleFile(event)" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:0"/>
+  </label>
+
+  <div id="fileInfo" style="display:none;margin-top:12px;align-items:center;gap:7px;flex-wrap:wrap">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+    <span id="fileName" style="font-size:13px;color:#22c55e;font-family:monospace"></span>
+    <span id="pageCount" style="font-size:11px;color:#475569;font-family:monospace"></span>
+  </div>
+
+  <div id="extractProgress" style="display:none;margin-top:10px">
+    <div style="font-size:12px;color:#64748b;font-family:monospace" id="extractLabel">Reading…</div>
+    <div class="progress-bar" style="margin-top:6px"><div class="progress-fill" id="extractFill" style="width:0%"></div></div>
+  </div>
+
+  <div id="afterUpload" style="display:none;margin-top:16px">
+    <div style="font-size:10px;font-weight:700;color:#475569;font-family:monospace;letter-spacing:0.07em;text-transform:uppercase;margin-bottom:6px">Book Title</div>
+    <input type="text" id="bookTitle" style="font-family:Georgia,serif;font-size:14px;padding-right:12px"/>
+    <div style="margin-top:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <button id="runBtn" class="btn btn-indigo" onclick="runPipeline()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Generate Summary
+      </button>
+      <span id="statsLabel" style="font-size:11px;color:#334155;font-family:monospace"></span>
+    </div>
+    <div id="genProgress" style="display:none;margin-top:10px">
+      <div style="font-size:11px;color:#64748b;font-family:monospace" id="genLabel">Processing…</div>
+      <div class="progress-bar" style="margin-top:6px"><div class="progress-fill" id="genFill" style="width:0%"></div></div>
+    </div>
+  </div>
+</div>
+
+<div id="errorBox" class="error-box" style="display:none"><span>⚠</span><span id="errorMsg"></span></div>
+<div id="infoBox" class="info-box" style="display:none"></div>
+
+<!-- Results -->
+<div id="results" style="display:none" class="fadein">
+  <div class="tab-bar">
+    <button class="tab active" onclick="switchTab('quick')">Quick Ref</button>
+    <button class="tab" onclick="switchTab('explained')">Explained</button>
+    <button class="tab" onclick="switchTab('characters')">People</button>
+  </div>
+
+  <!-- Quick Ref -->
+  <div id="tab-quick" class="panel">
+    <div class="panel-head">
+      <div style="display:flex;align-items:center">
+        <span class="panel-badge" style="color:#4285f4;background:#4285f418;border:1px solid #4285f430">PART 1</span>
+        <span class="panel-title">Quick Reference</span>
+      </div>
+      <button class="btn-copy" onclick="copyQuick()">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy
+      </button>
+    </div>
+    <div class="panel-body"><div id="quickContent" class="sections-grid"></div></div>
+  </div>
+
+  <!-- Explained -->
+  <div id="tab-explained" class="panel" style="display:none">
+    <div class="panel-head">
+      <div style="display:flex;align-items:center">
+        <span class="panel-badge" style="color:#34a853;background:#34a85318;border:1px solid #34a85330">PART 2</span>
+        <span class="panel-title">Explained</span>
+      </div>
+      <button class="btn-copy" onclick="copyExplained()">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy
+      </button>
+    </div>
+    <div class="panel-body"><div id="explainedContent" class="explained-list"></div></div>
+  </div>
+
+  <!-- People -->
+  <div id="tab-characters" class="panel" style="display:none">
+    <div class="panel-head">
+      <div style="display:flex;align-items:center">
+        <span class="panel-badge" style="color:#fbbc04;background:#fbbc0418;border:1px solid #fbbc0430">PEOPLE</span>
+        <span class="panel-title" id="charTitle">Key People</span>
+      </div>
+    </div>
+    <div class="panel-body"><div id="charContent" class="char-grid"></div></div>
+  </div>
+</div>
+
+</main>
+
+<div id="toast" class="toast" style="opacity:0;transform:translateY(8px)">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+  Copied!
+</div>
+
+<script>
+// ── Constants ─────────────────────────────────────────────────────────────────
+const MAX_PAGES = 1000;
+const WORDS_PER_CHUNK = 1200;
+const MAX_SAMPLE_CHUNKS = 20;
+const GEMINI_MODEL = "gemini-2.0-flash";
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let inputText = "", quickData = [], explainedData = [], charData = [];
+let _savedKey = ""; // in-memory fallback if sessionStorage blocked
+
+// ── Load saved key ────────────────────────────────────────────────────────────
+try {
+  const saved = sessionStorage.getItem("folio_gemini_key");
+  if (saved) { _savedKey = saved; document.getElementById("apiKeyInput").value = saved; markSaved(); }
+} catch {
+  // sessionStorage blocked (file:// strict mode) — in-memory only, that's fine
+}
+
+// ── Key helpers ───────────────────────────────────────────────────────────────
+function toggleKeyVis() {
+  const inp = document.getElementById("apiKeyInput");
+  const isHidden = inp.type === "password";
+  inp.type = isHidden ? "text" : "password";
+  document.getElementById("eyeIcon").innerHTML = isHidden
+    ? '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>'
+    : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+}
+
+function saveKey() {
+  const key = document.getElementById("apiKeyInput").value.replace(/[^\x20-\x7E]/g,"").trim();
+  if (!key) return;
+  document.getElementById("apiKeyInput").value = key;
+  _savedKey = key;
+  try { sessionStorage.setItem("folio_gemini_key", key); } catch {}
+  markSaved();
+}
+
+function markSaved() {
+  const btn = document.getElementById("saveKeyBtn");
+  btn.textContent = "✓ Saved";
+  btn.className = "btn btn-saved";
+}
+
+function getKey() {
+  const typed = document.getElementById("apiKeyInput").value.replace(/[^\x20-\x7E]/g,"").trim();
+  return typed || _savedKey;
+}
+
+// ── PDF handling ──────────────────────────────────────────────────────────────
+async function handleFile(e) {
+  const file = e.target.files?.[0];
+  e.target.value = "";
+  if (!file) return;
+  if (!file.name.toLowerCase().endsWith(".pdf") && file.type !== "application/pdf") {
+    showError("Please select a PDF file."); return;
+  }
+  clearError();
+  document.getElementById("afterUpload").style.display = "none";
+  document.getElementById("results").style.display = "none";
+  document.getElementById("fileInfo").style.display = "none";
+  document.getElementById("extractProgress").style.display = "block";
+  document.getElementById("uploadBtn").disabled = true;
+  inputText = "";
+
+  try {
+    inputText = await extractPdfText(file);
+    if (!inputText || inputText.length < 50)
+      throw new Error("No readable text found. This PDF may be scanned/image-based.");
+    const words = inputText.trim().split(/\s+/).filter(Boolean).length;
+    const chunks = chunkText(inputText).length;
+    const mins = Math.round(words / 238);
+    const readTime = mins < 1 ? "< 1 min" : mins >= 60 ? Math.floor(mins/60)+"h "+mins%60+"m" : mins+" min";
+    document.getElementById("statsLabel").textContent =
+      words.toLocaleString() + " words · " + chunks + " sections · ~" + readTime + " read";
+    document.getElementById("bookTitle").value =
+      file.name.replace(/\.pdf$/i,"").replace(/[-_]+/g," ").trim();
+    document.getElementById("fileInfo").style.display = "flex";
+    document.getElementById("fileName").textContent = file.name;
+    document.getElementById("afterUpload").style.display = "block";
+  } catch(err) {
+    showError(err.message);
+  } finally {
+    document.getElementById("extractProgress").style.display = "none";
+    document.getElementById("uploadBtn").disabled = false;
+  }
+}
+
+async function extractPdfText(file) {
+  const lib = window.pdfjsLib;
+  const pdf = await lib.getDocument({ data: await file.arrayBuffer() }).promise;
+  const total = Math.min(pdf.numPages, MAX_PAGES);
+  document.getElementById("pageCount").textContent = "(" + total + " page" + (total !== 1 ? "s" : "") + ")";
+  let text = "";
+  for (let i = 1; i <= total; i++) {
+    const page = await pdf.getPage(i);
+    const c = await page.getTextContent();
+    text += c.items.map(x => x.str).join(" ") + "\n";
+    const pct = Math.round((i / total) * 100);
+    document.getElementById("extractLabel").textContent = "Page " + i + " / " + total + " · " + pct + "%";
+    document.getElementById("extractFill").style.width = pct + "%";
+  }
+  return text.trim();
+}
+
+// ── Chunking ──────────────────────────────────────────────────────────────────
+function chunkText(text) {
+  const words = text.trim().split(/\s+/);
+  const chunks = [];
+  for (let i = 0; i < words.length; i += WORDS_PER_CHUNK)
+    chunks.push(words.slice(i, i + WORDS_PER_CHUNK).join(" "));
+  return chunks;
+}
+
+function sampleChunks(chunks) {
+  if (chunks.length <= MAX_SAMPLE_CHUNKS) return { sampled: chunks, wasSampled: false };
+  const sampled = [];
+  const step = (chunks.length - 1) / (MAX_SAMPLE_CHUNKS - 1);
+  for (let i = 0; i < MAX_SAMPLE_CHUNKS; i++) sampled.push(chunks[Math.round(i * step)]);
+  return { sampled, wasSampled: true };
+}
+
+// ── Gemini API call ───────────────────────────────────────────────────────────
+async function geminiCall(prompt) {
+  const key = getKey();
+  if (!key) throw new Error("Please enter your Gemini API key first.");
+  const url = "https://generativelanguage.googleapis.com/v1beta/models/" +
+    GEMINI_MODEL + ":generateContent?key=" + encodeURIComponent(key);
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { temperature: 0.2, maxOutputTokens: 8192 }
+    })
+  });
+  if (!res.ok) {
+    let msg = "Gemini API error " + res.status;
+    try {
+      const e = await res.json();
+      msg = e?.error?.message || msg;
+    } catch {}
+    throw new Error(msg);
+  }
+  const data = await res.json();
+  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) throw new Error("Empty response from Gemini. Try again.");
+  return text;
+}
+
+// ── JSON extraction ───────────────────────────────────────────────────────────
+function extractJSON(raw) {
+  // 1. Direct parse
+  try { const p = JSON.parse(raw.trim()); if (p && p.sections) return p; } catch {}
+  // 2. Strip markdown fences
+  const stripped = raw.replace(/```json\s*/gi,"").replace(/```\s*/g,"").trim();
+  try { const p = JSON.parse(stripped); if (p && p.sections) return p; } catch {}
+  // 3. Find outermost { }
+  const start = raw.indexOf("{");
+  const end = raw.lastIndexOf("}");
+  if (start !== -1 && end > start) {
+    try { const p = JSON.parse(raw.slice(start, end + 1)); if (p && p.sections) return p; } catch {}
+  }
+  return null;
+}
+
+// ── Summary generation ────────────────────────────────────────────────────────
+async function generateSummary(chunks, bookTitle) {
+  const title = bookTitle || "Unknown Book";
+  const textBlocks = chunks
+    .map((c, i) => "[Section " + (i+1) + "/" + chunks.length + "]\n" + c)
+    .join("\n\n---\n\n");
+
+  const prompt = [
+    'You are analyzing a book titled: "' + title + '"',
+    "",
+    "RESPOND WITH A SINGLE RAW JSON OBJECT ONLY.",
+    "NO text before the JSON. NO text after the JSON.",
+    "NO markdown. NO code fences. NO backticks.",
+    "Your response must start with { and end with }",
+    "",
+    "JSON STRUCTURE:",
+    "{",
+    '  "sections": [',
+    "    {",
+    '      "heading": "2-5 word topic label",',
+    '      "chips": ["keyword1", "keyword2", "keyword3", "keyword4"],',
+    '      "explained": "2-3 sentences in plain English explaining this topic and why it matters."',
+    "    }",
+    "  ],",
+    '  "characters": [',
+    '    {"name": "Full Name", "role": "their role in the book", "trait": "key personality or contribution"}',
+    "  ]",
+    "}",
+    "",
+    "RULES — follow every single one:",
+    "1. sections: Create 10 to 20 sections. Cover EVERY major topic, idea, concept, chapter, lesson, rule, or principle in the book. Do NOT miss anything important.",
+    "2. heading: 2-5 words max. Short and descriptive like a chapter title.",
+    "3. chips: 3-7 items. Ultra-short keywords or concepts from that section (1-4 words each). These are like tags.",
+    "4. explained: 2-3 plain English sentences. Must be clear enough that someone understands the idea WITHOUT reading the book.",
+    "5. characters: Include real people, authors, or key figures mentioned. Use empty array [] for pure how-to books with no key figures.",
+    "6. DO NOT include any text outside the JSON. Start your entire response with { and nothing else.",
+    "",
+    "BOOK TEXT TO ANALYZE:",
+    "",
+    textBlocks
+  ].join("\n");
+
+  const raw = await geminiCall(prompt);
+  const parsed = extractJSON(raw);
+
+  if (!parsed || !Array.isArray(parsed.sections) || parsed.sections.length === 0) {
+    // Show raw for debugging
+    throw new Error("Could not parse Gemini response. Raw response: " + raw.slice(0, 300));
+  }
+
+  quickData = parsed.sections;
+  explainedData = parsed.sections;
+  charData = Array.isArray(parsed.characters) ? parsed.characters : [];
+}
+
+// ── Pipeline ──────────────────────────────────────────────────────────────────
+async function runPipeline() {
+  if (!inputText.trim()) { showError("Upload a PDF first."); return; }
+  if (!getKey()) { showError("Enter your Gemini API key first."); return; }
+  clearError();
+  quickData = []; explainedData = []; charData = [];
+  document.getElementById("results").style.display = "none";
+
+  const runBtn = document.getElementById("runBtn");
+  runBtn.disabled = true;
+  runBtn.innerHTML = '<svg class="spin" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Generating…';
+  document.getElementById("genProgress").style.display = "block";
+  setGen("Preparing…", 10);
+
+  try {
+    const allChunks = chunkText(inputText);
+    const { sampled, wasSampled } = sampleChunks(allChunks);
+    if (wasSampled) {
+      document.getElementById("infoBox").style.display = "block";
+      document.getElementById("infoBox").textContent =
+        "ℹ Large book (" + allChunks.length + " sections) — sampled " + sampled.length + " representative sections for analysis.";
+    }
+    setGen("Sending to Gemini…", 25);
+    await generateSummary(sampled, document.getElementById("bookTitle").value.trim());
+    setGen("Rendering…", 90);
+    renderResults();
+    setGen("Done ✓", 100);
+  } catch(err) {
+    showError(err.message);
+  } finally {
+    runBtn.disabled = false;
+    runBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg> Generate Summary';
+    document.getElementById("genProgress").style.display = "none";
+  }
+}
+
+function setGen(label, pct) {
+  document.getElementById("genLabel").textContent = label;
+  document.getElementById("genFill").style.width = pct + "%";
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function renderResults() {
+  // Part 1: Quick Ref — heading + chips
+  const qc = document.getElementById("quickContent");
+  qc.innerHTML = "";
+  quickData.forEach(sec => {
+    const block = document.createElement("div");
+    block.className = "section-block";
+    const chips = (sec.chips || [])
+      .map(c => '<span class="point-chip">' + esc(c) + '</span>').join("");
+    block.innerHTML =
+      '<div class="section-heading">' + esc(sec.heading || "") + '</div>' +
+      '<div class="section-points">' + chips + '</div>';
+    qc.appendChild(block);
+  });
+
+  // Part 2: Explained — heading + 2-3 sentence explanation
+  const ec = document.getElementById("explainedContent");
+  ec.innerHTML = "";
+  explainedData.forEach(sec => {
+    const item = document.createElement("div");
+    item.className = "explained-item";
+    item.innerHTML =
+      '<div class="explained-heading">' + esc(sec.heading || "") + '</div>' +
+      '<div class="explained-body">' + esc(sec.explained || "") + '</div>';
+    ec.appendChild(item);
+  });
+
+  // People
+  const cc = document.getElementById("charContent");
+  cc.innerHTML = "";
+  const palette = ["#4285f4","#34a853","#fbbc04","#ea4335","#8b5cf6","#06b6d4"];
+  if (charData.length === 0) {
+    cc.innerHTML = '<div style="color:#334155;font-size:13px;font-style:italic">No key people found.</div>';
+  } else {
+    charData.forEach(c => {
+      const color = palette[(c.name || "A").charCodeAt(0) % palette.length];
+      const initials = (c.name || "?").split(" ").map(w => w[0]).join("").slice(0,2).toUpperCase();
+      const card = document.createElement("div");
+      card.className = "char-card";
+      card.innerHTML =
+        '<div class="char-avatar" style="background:' + color + '18;border:1px solid ' + color + '33;color:' + color + '">' + initials + '</div>' +
+        '<div>' +
+          '<div class="char-name">' + esc(c.name || "") + '</div>' +
+          '<div class="char-role">' + esc(c.role || "") + '</div>' +
+          '<div class="char-trait" style="color:' + color + '">' + esc(c.trait || "") + '</div>' +
+        '</div>';
+      cc.appendChild(card);
+    });
+  }
+
+  document.getElementById("charTitle").textContent =
+    "Key People" + (charData.length ? " (" + charData.length + ")" : "");
+  document.getElementById("results").style.display = "block";
+  switchTab("quick");
+}
+
+function esc(s) {
+  return String(s)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;");
+}
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  ["quick","explained","characters"].forEach(t => {
+    document.getElementById("tab-" + t).style.display = t === tab ? "block" : "none";
+  });
+  document.querySelectorAll(".tab").forEach((btn, i) => {
+    btn.classList.toggle("active", ["quick","explained","characters"][i] === tab);
+  });
+}
+
+// ── Copy ──────────────────────────────────────────────────────────────────────
+function copyQuick() {
+  const text = quickData.map(s =>
+    (s.heading || "") + "\n" + (s.chips || []).join(" · ")
+  ).join("\n\n");
+  doCopy(text);
+}
+
+function copyExplained() {
+  const text = explainedData.map(s =>
+    (s.heading || "") + "\n" + (s.explained || "")
+  ).join("\n\n");
+  doCopy(text);
+}
+
+async function doCopy(text) {
+  try { await navigator.clipboard.writeText(text); } catch {
+    const el = document.createElement("textarea");
+    el.value = text; document.body.appendChild(el); el.select();
+    document.execCommand("copy"); document.body.removeChild(el);
+  }
+  const t = document.getElementById("toast");
+  t.style.opacity = "1"; t.style.transform = "translateY(0)";
+  setTimeout(() => { t.style.opacity = "0"; t.style.transform = "translateY(8px)"; }, 2000);
+}
+
+// ── Error ─────────────────────────────────────────────────────────────────────
+function showError(msg) {
+  const box = document.getElementById("errorBox");
+  document.getElementById("errorMsg").textContent = msg;
+  box.style.display = "flex";
+}
+
+function clearError() {
+  document.getElementById("errorBox").style.display = "none";
+  document.getElementById("infoBox").style.display = "none";
+}
+</script>
+</body>
+</html>
