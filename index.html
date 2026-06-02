@@ -231,8 +231,8 @@ const MAX_FILE_MB    = 25;
 const MAX_PAGES      = 300;
 const MIN_TEXT_CHARS = 200;         // below this → OCR mode
 const OCR_SCALE      = 2.0;         // render scale for Tesseract
-const WORDS_PER_CHUNK = 2500;        // for raw-word fallback
-const GEMINI_MODEL = "gemini-2.5-flash-lite";
+const WORDS_PER_CHUNK = 5000;       // for raw-word fallback
+const GEMINI_MODEL = "gemini-2.5-flash";
 const CHUNK_SUMMARY_MAX_TOKENS = 400;
 const FINAL_SUMMARY_MAX_TOKENS = 2048;
 const RETRY_ATTEMPTS = 5;
@@ -477,7 +477,7 @@ async function geminiCall(prompt, maxTokens = FINAL_SUMMARY_MAX_TOKENS) {
     msg.includes("Quota exceeded") ||
     msg.includes("high demand")
   ) {
-    const wait = Math.min(attempt * 10000, 30000);
+    const wait = Math.min(Math.pow(2, attempt) * 10000, 60000);
 
     setGen(
       `Gemini quota reached. Waiting ${wait / 1000}s before retry...`,
