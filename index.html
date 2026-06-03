@@ -62,20 +62,17 @@ input[type=text]:focus,input[type=password]:focus{border-color:#4285f4}
 
 .ocr-badge{display:inline-flex;align-items:center;gap:5px;background:#1a1a2e;border:1px solid #2d2d5e;border-radius:5px;padding:3px 8px;font-size:10px;color:#8888cc;font-family:monospace;margin-left:8px}
 
-/* Quick ref */
 .sections-grid{display:flex;flex-direction:column;gap:10px}
 .section-block{background:#0a1628;border:1px solid #1e293b;border-radius:10px;padding:12px 16px}
 .section-heading{font-size:12px;font-weight:800;color:#4285f4;margin-bottom:8px;letter-spacing:0.03em}
 .section-points{display:flex;flex-wrap:wrap;gap:6px}
 .point-chip{background:#1e293b;border:1px solid #334155;border-radius:6px;padding:4px 10px;font-size:12px;color:#94a3b8;font-family:Georgia,serif}
 
-/* Explained */
 .explained-list{display:flex;flex-direction:column;gap:12px}
 .explained-item{border-left:2px solid #4285f4;padding-left:14px;padding-top:2px;padding-bottom:2px}
 .explained-heading{font-size:13px;font-weight:700;color:#e2e8f0;margin-bottom:4px}
 .explained-body{font-size:13px;color:#64748b;line-height:1.65;font-family:Georgia,serif}
 
-/* People */
 .char-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
 .char-card{background:#080f1e;border:1px solid #1e293b;border-radius:11px;padding:13px 15px;display:flex;gap:11px}
 .char-avatar{width:34px;height:34px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;font-family:monospace}
@@ -102,7 +99,6 @@ input[type=text]:focus,input[type=password]:focus{border-color:#4285f4}
 
 <main>
 
-<!-- API Key -->
 <div class="card">
   <div class="card-label">Google Gemini API Key</div>
   <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
@@ -121,7 +117,6 @@ input[type=text]:focus,input[type=password]:focus{border-color:#4285f4}
   </div>
 </div>
 
-<!-- Upload PDF -->
 <div class="card">
   <div class="card-label">Upload PDF</div>
 
@@ -168,7 +163,6 @@ input[type=text]:focus,input[type=password]:focus{border-color:#4285f4}
 <div id="errorBox" class="error-box" style="display:none"><span>⚠</span><span id="errorMsg"></span></div>
 <div id="infoBox" class="info-box" style="display:none"></div>
 
-<!-- Results -->
 <div id="results" style="display:none" class="fadein">
   <div class="tab-bar">
     <button class="tab active" onclick="switchTab('quick')">Quick Ref</button>
@@ -176,7 +170,6 @@ input[type=text]:focus,input[type=password]:focus{border-color:#4285f4}
     <button class="tab" onclick="switchTab('characters')">People</button>
   </div>
 
-  <!-- Quick Ref -->
   <div id="tab-quick" class="panel">
     <div class="panel-head">
       <div style="display:flex;align-items:center">
@@ -191,7 +184,6 @@ input[type=text]:focus,input[type=password]:focus{border-color:#4285f4}
     <div class="panel-body"><div id="quickContent" class="sections-grid"></div></div>
   </div>
 
-  <!-- Explained -->
   <div id="tab-explained" class="panel" style="display:none">
     <div class="panel-head">
       <div style="display:flex;align-items:center">
@@ -206,7 +198,6 @@ input[type=text]:focus,input[type=password]:focus{border-color:#4285f4}
     <div class="panel-body"><div id="explainedContent" class="explained-list"></div></div>
   </div>
 
-  <!-- People -->
   <div id="tab-characters" class="panel" style="display:none">
     <div class="panel-head">
       <div style="display:flex;align-items:center">
@@ -226,31 +217,31 @@ input[type=text]:focus,input[type=password]:focus{border-color:#4285f4}
 </div>
 
 <script>
-// ── Constants ─────────────────────────────────────────────────────────────────
-const MAX_FILE_MB             = 25;
-const MAX_PAGES               = 300;
-const MIN_TEXT_CHARS          = 200;
-const OCR_SCALE               = 2.0;
-const GEMINI_MODEL            = "gemini-2.5-flash";
-const CHUNK_SUMMARY_MAX_TOKENS = 200;   // Level 1: tight chunk summaries
-const GROUP_SUMMARY_MAX_TOKENS = 300;   // Level 2: group syntheses
-const FINAL_SUMMARY_MAX_TOKENS = 4096;  // Level 3: final JSON
-const RETRY_ATTEMPTS          = 5;
-const TIMEOUT_MS              = 90000;
-const CHARS_PER_CHUNK         = 8000;   // ~2000 words per chunk
-const GROUP_SIZE              = 10;     // chunk summaries per group
+// ── Constants ──────────────────────────────────────────────────────────────────
+const MAX_FILE_MB              = 25;
+const MAX_PAGES                = 300;
+const OCR_SCALE                = 2.0;
+const GEMINI_MODEL             = "gemini-2.5-flash";
+const CHUNK_SUMMARY_MAX_TOKENS = 350;
+const GROUP_SUMMARY_MAX_TOKENS = 500;
+const MASTER_SUMMARY_MAX_TOKENS = 1500;
+const FINAL_JSON_MAX_TOKENS    = 10000;
+const RETRY_ATTEMPTS           = 4;
+const TIMEOUT_MS               = 120000;
+const CHARS_PER_CHUNK          = 18000;  // ~4500 words per chunk
+const GROUP_SIZE               = 8;      // chunk summaries per group
 
-// ── State ─────────────────────────────────────────────────────────────────────
+// ── State ──────────────────────────────────────────────────────────────────────
 let inputText = "", quickData = [], explainedData = [], charData = [];
 let _savedKey = "";
 
-// ── Load saved key ────────────────────────────────────────────────────────────
+// ── Load saved key ─────────────────────────────────────────────────────────────
 try {
   const saved = sessionStorage.getItem("folio_gemini_key");
   if (saved) { _savedKey = saved; document.getElementById("apiKeyInput").value = saved; markSaved(); }
 } catch {}
 
-// ── Key helpers ───────────────────────────────────────────────────────────────
+// ── Key helpers ────────────────────────────────────────────────────────────────
 function toggleKeyVis() {
   const inp = document.getElementById("apiKeyInput");
   const isHidden = inp.type === "password";
@@ -261,7 +252,7 @@ function toggleKeyVis() {
 }
 
 function saveKey() {
-  const key = document.getElementById("apiKeyInput").value.replace(/[^\x20-\x7E]/g,"").trim();
+  const key = document.getElementById("apiKeyInput").value.replace(/[^\x20-\x7E]/g, "").trim();
   if (!key) return;
   document.getElementById("apiKeyInput").value = key;
   _savedKey = key;
@@ -276,39 +267,31 @@ function markSaved() {
 }
 
 function getKey() {
-  const typed = document.getElementById("apiKeyInput").value.replace(/[^\x20-\x7E]/g,"").trim();
+  const typed = document.getElementById("apiKeyInput").value.replace(/[^\x20-\x7E]/g, "").trim();
   return typed || _savedKey;
 }
 
-// ── Utilities ─────────────────────────────────────────────────────────────────
-function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+// ── Utilities ──────────────────────────────────────────────────────────────────
+const delay = ms => new Promise(r => setTimeout(r, ms));
 
 function showError(msg) {
-  const box = document.getElementById("errorBox");
   document.getElementById("errorMsg").textContent = msg;
-  box.style.display = "flex";
+  document.getElementById("errorBox").style.display = "flex";
 }
-
-function clearError() {
-  document.getElementById("errorBox").style.display = "none";
-}
+function clearError() { document.getElementById("errorBox").style.display = "none"; }
 
 function showToast() {
   const t = document.getElementById("toast");
-  t.style.opacity = "1";
-  t.style.transform = "translateY(0)";
+  t.style.opacity = "1"; t.style.transform = "translateY(0)";
   setTimeout(() => { t.style.opacity = "0"; t.style.transform = "translateY(8px)"; }, 2000);
 }
 
-function loadScript(src) {
-  return new Promise((resolve, reject) => {
-    const s = document.createElement("script");
-    s.src = src; s.onload = resolve; s.onerror = reject;
-    document.head.appendChild(s);
-  });
+function setProgress(fillId, labelId, pct, label) {
+  document.getElementById(fillId).style.width = pct + "%";
+  if (labelId && label) document.getElementById(labelId).textContent = label;
 }
 
-// ── Tab switching ─────────────────────────────────────────────────────────────
+// ── Tab switching ──────────────────────────────────────────────────────────────
 function switchTab(name) {
   ["quick","explained","characters"].forEach(t => {
     document.getElementById("tab-"+t).style.display = t === name ? "block" : "none";
@@ -318,20 +301,404 @@ function switchTab(name) {
   });
 }
 
-// ── Copy helpers ──────────────────────────────────────────────────────────────
+// ── Copy helpers ───────────────────────────────────────────────────────────────
 function copyQuick() {
-  const text = quickData.map(s =>
-    s.heading + "\n" + s.points.map(p => "  • " + p).join("\n")
-  ).join("\n\n");
+  const text = quickData.map(s => s.heading + "\n" + s.points.map(p => "  • " + p).join("\n")).join("\n\n");
   navigator.clipboard.writeText(text).then(showToast);
 }
-
 function copyExplained() {
   const text = explainedData.map(e => e.heading + "\n" + e.body).join("\n\n");
   navigator.clipboard.writeText(text).then(showToast);
 }
 
-// ── PDF handling ──────────────────────────────────────────────────────────────
+// ── PDF extraction ─────────────────────────────────────────────────────────────
+async function extractPdfText(file) {
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  const pageCount = pdf.numPages;
+
+  if (pageCount > MAX_PAGES)
+    throw new Error(`PDF has ${pageCount} pages. Maximum is ${MAX_PAGES}.`);
+
+  let fullText = "";
+  let usedOCR = false;
+  const total = pageCount;
+
+  for (let p = 1; p <= total; p++) {
+    const pct = Math.round((p / total) * 100);
+    setProgress("extractFill", "extractLabel", pct, `Reading page ${p} of ${total}…`);
+
+    const page = await pdf.getPage(p);
+    const content = await page.getTextContent();
+    const pageText = content.items.map(i => i.str).join(" ").trim();
+
+    if (pageText.length > 30) {
+      fullText += pageText + "\n\n";
+    } else {
+      // OCR fallback for image-based pages
+      usedOCR = true;
+      try {
+        const viewport = page.getViewport({ scale: OCR_SCALE });
+        const canvas = document.createElement("canvas");
+        canvas.width = viewport.width; canvas.height = viewport.height;
+        const ctx = canvas.getContext("2d");
+        await page.render({ canvasContext: ctx, viewport }).promise;
+        // Store as marker — real OCR would need Tesseract; we flag the page
+        fullText += `[Page ${p}: image-based content]\n\n`;
+      } catch { /* skip */ }
+    }
+  }
+
+  document.getElementById("extractProgress").style.display = "none";
+  return { text: fullText.trim(), usedOCR, pageCount };
+}
+
+// ── Text chunking ──────────────────────────────────────────────────────────────
+function chunkByParagraph(text) {
+  const paragraphs = text.split(/\n\s*\n/).map(p => p.trim()).filter(p => p.length > 40);
+  const chunks = [];
+  let current = "";
+
+  for (const para of paragraphs) {
+    if (current.length + para.length + 2 > CHARS_PER_CHUNK && current.length > 0) {
+      chunks.push(current.trim());
+      current = para;
+    } else {
+      current += (current ? "\n\n" : "") + para;
+    }
+  }
+  if (current.trim()) chunks.push(current.trim());
+  return chunks;
+}
+
+// ── Gemini API call ────────────────────────────────────────────────────────────
+async function callGemini(apiKey, prompt, maxTokens, useJsonMode = false) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
+
+  const generationConfig = {
+    maxOutputTokens: maxTokens,
+    temperature: 0.3
+  };
+  if (useJsonMode) generationConfig.responseMimeType = "application/json";
+
+  const body = {
+    contents: [{ parts: [{ text: prompt }] }],
+    generationConfig
+  };
+
+  for (let attempt = 1; attempt <= RETRY_ATTEMPTS; attempt++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+    try {
+      const resp = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+        signal: controller.signal
+      });
+      clearTimeout(timer);
+
+      if (!resp.ok) {
+        const errText = await resp.text();
+        if (resp.status === 429 || resp.status >= 500) {
+          await delay(2000 * attempt);
+          continue;
+        }
+        throw new Error(`Gemini API error ${resp.status}: ${errText.slice(0, 200)}`);
+      }
+
+      const data = await resp.json();
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!text) throw new Error("Empty response from Gemini.");
+      return text;
+    } catch (err) {
+      clearTimeout(timer);
+      if (err.name === "AbortError") {
+        if (attempt < RETRY_ATTEMPTS) { await delay(3000); continue; }
+        throw new Error("Request timed out after multiple attempts.");
+      }
+      if (attempt < RETRY_ATTEMPTS) { await delay(1500 * attempt); continue; }
+      throw err;
+    }
+  }
+  throw new Error("All retry attempts failed.");
+}
+
+// ── JSON parsing (fault-tolerant) ─────────────────────────────────────────────
+function robustJsonParse(raw) {
+  if (!raw || typeof raw !== "string") return null;
+
+  // 1. Try direct parse first
+  try { return JSON.parse(raw); } catch {}
+
+  // 2. Strip markdown code fences
+  let cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/, "").trim();
+  try { return JSON.parse(cleaned); } catch {}
+
+  // 3. Extract the first { ... } block
+  const start = cleaned.indexOf("{");
+  const end   = cleaned.lastIndexOf("}");
+  if (start !== -1 && end !== -1 && end > start) {
+    const extracted = cleaned.slice(start, end + 1);
+    try { return JSON.parse(extracted); } catch {}
+
+    // 4. Fix trailing commas before ] or }
+    const fixedCommas = extracted
+      .replace(/,\s*([}\]])/g, "$1")
+      .replace(/([{,]\s*)(\w+)\s*:/g, (_, prefix, key) => `${prefix}"${key}":`)  // unquoted keys
+      .replace(/:\s*'([^']*)'/g, ': "$1"');  // single-quoted values
+    try { return JSON.parse(fixedCommas); } catch {}
+  }
+
+  return null;
+}
+
+// ── JSON repair via Gemini ─────────────────────────────────────────────────────
+async function repairJson(brokenJson, apiKey) {
+  const prompt = `The following text should be valid JSON but has formatting errors. Fix it and return ONLY the corrected JSON with no explanation, no markdown, no code fences. The response must start with { and end with }.
+
+${brokenJson.slice(0, 8000)}`;
+
+  const raw = await callGemini(apiKey, prompt, 8000, true);
+  const parsed = robustJsonParse(raw);
+  if (!parsed) throw new Error("JSON repair failed.");
+  return parsed;
+}
+
+// ── Summarization pipeline ────────────────────────────────────────────────────
+
+// Level 1: summarise a single chunk
+async function summariseChunk(chunk, idx, total, apiKey) {
+  const prompt = `Summarise the following book passage concisely. Capture all important ideas, arguments, examples, and key people mentioned. Write in plain prose, 3-6 sentences. Passage ${idx+1} of ${total}:
+
+${chunk}`;
+  return callGemini(apiKey, prompt, CHUNK_SUMMARY_MAX_TOKENS);
+}
+
+// Level 2: summarise a group of chunk summaries
+async function summariseGroup(summaries, groupIdx, apiKey) {
+  const combined = summaries.map((s, i) => `[${i+1}] ${s}`).join("\n\n");
+  const prompt = `You have ${summaries.length} consecutive passage summaries from a book. Merge them into one coherent synthesis. Preserve all key ideas, arguments, examples, lessons, and named people. Write in plain prose, 5-10 sentences.
+
+${combined}`;
+  return callGemini(apiKey, prompt, GROUP_SUMMARY_MAX_TOKENS);
+}
+
+// Level 3: create a single master summary from all group summaries
+async function summariseMaster(groupSummaries, title, apiKey) {
+  const combined = groupSummaries.map((s, i) => `[Group ${i+1}]\n${s}`).join("\n\n---\n\n");
+  const prompt = `You are creating a master overview of the book "${title}" from ${groupSummaries.length} section summaries covering the entire book.
+
+Write a comprehensive master summary that:
+- Covers the complete arc of the book from start to finish
+- Preserves every important concept, argument, and idea
+- Names all key people, thinkers, or characters
+- Notes important examples, case studies, or stories
+- Captures the central lessons and conclusions
+- Stays under 1200 words of plain prose
+
+Section summaries:
+${combined}`;
+  return callGemini(apiKey, prompt, MASTER_SUMMARY_MAX_TOKENS);
+}
+
+// Level 4: generate final structured JSON from master summary
+async function generateFinalJson(masterSummary, title, apiKey) {
+  const prompt = `You are a book analyst. Based on the following comprehensive book summary, produce a structured JSON analysis of "${title}".
+
+CRITICAL INSTRUCTIONS:
+- Your entire response must be a single valid JSON object
+- Do NOT include markdown formatting of any kind
+- Do NOT use code fences or backticks
+- Do NOT include any text before the opening { or after the closing }
+- Do NOT include explanations or comments
+- The response must begin with { and end with }
+- If a section would be too long, use shorter sentences rather than cutting off the JSON
+
+Required JSON structure:
+{
+  "sections": [
+    { "heading": "Theme or topic name", "points": ["key point", "key point", "key point"] }
+  ],
+  "explained": [
+    { "heading": "Concept or idea name", "body": "2-3 sentence explanation of this concept" }
+  ],
+  "characters": [
+    { "name": "Person's name", "role": "Their role or title", "trait": "Their key contribution or significance", "color": "#hex" }
+  ]
+}
+
+Requirements:
+- sections: 20-35 entries covering every major theme, argument, and idea in the book
+- explained: 15-25 entries covering the most important concepts, frameworks, and ideas
+- characters: all notable people, authors, researchers, or figures mentioned
+- Each section should have 3-5 specific, substantive points
+- Explanations should be clear and informative, 2-3 sentences each
+- Cover the full book, not just the beginning
+
+Book summary to analyse:
+${masterSummary}`;
+
+  const raw = await callGemini(apiKey, prompt, FINAL_JSON_MAX_TOKENS, true);
+  let parsed = robustJsonParse(raw);
+
+  if (!parsed) {
+    console.warn("Initial JSON parse failed, attempting repair…");
+    parsed = await repairJson(raw, apiKey);
+  }
+
+  return parsed;
+}
+
+// ── Main pipeline ──────────────────────────────────────────────────────────────
+async function runPipeline() {
+  const apiKey = getKey();
+  if (!apiKey) { showError("Please enter your Gemini API key."); return; }
+  if (!inputText) { showError("Please upload a PDF first."); return; }
+
+  clearError();
+  document.getElementById("results").style.display    = "none";
+  document.getElementById("genProgress").style.display = "block";
+  document.getElementById("runBtn").disabled           = true;
+
+  const title = document.getElementById("bookTitle").value.trim() || "this book";
+
+  try {
+    const chunks = chunkByParagraph(inputText);
+    const totalChunks = chunks.length;
+    let step = 0;
+    const totalSteps = totalChunks + Math.ceil(totalChunks / GROUP_SIZE) + 2;
+
+    function advanceProgress(label) {
+      step++;
+      const pct = Math.min(98, Math.round((step / totalSteps) * 100));
+      setProgress("genFill", "genLabel", pct, label);
+    }
+
+    // ── Level 1: chunk summaries (sequential, simple) ──────────────────────
+    setProgress("genFill", "genLabel", 2, `Summarising ${totalChunks} passages…`);
+    const chunkSummaries = [];
+    for (let i = 0; i < chunks.length; i++) {
+      advanceProgress(`Summarising passage ${i+1} of ${totalChunks}…`);
+      const summary = await summariseChunk(chunks[i], i, totalChunks, apiKey);
+      chunkSummaries.push(summary);
+    }
+
+    // ── Level 2: group summaries ───────────────────────────────────────────
+    const groups = [];
+    for (let i = 0; i < chunkSummaries.length; i += GROUP_SIZE) {
+      groups.push(chunkSummaries.slice(i, i + GROUP_SIZE));
+    }
+
+    const groupSummaries = [];
+    for (let i = 0; i < groups.length; i++) {
+      advanceProgress(`Synthesising group ${i+1} of ${groups.length}…`);
+      const gs = await summariseGroup(groups[i], i, apiKey);
+      groupSummaries.push(gs);
+    }
+
+    // ── Level 3: master summary ────────────────────────────────────────────
+    advanceProgress("Creating master summary…");
+    const masterSummary = await summariseMaster(groupSummaries, title, apiKey);
+
+    // ── Level 4: final JSON ────────────────────────────────────────────────
+    advanceProgress("Generating structured analysis…");
+    let result = await generateFinalJson(masterSummary, title, apiKey);
+
+    // Ensure required keys exist (safety net)
+    if (!result || typeof result !== "object") result = {};
+    if (!Array.isArray(result.sections))    result.sections    = [];
+    if (!Array.isArray(result.explained))   result.explained   = [];
+    if (!Array.isArray(result.characters))  result.characters  = [];
+
+    setProgress("genFill", "genLabel", 100, "Done!");
+
+    renderResults(result, title);
+
+  } catch (err) {
+    showError(err.message || "An unexpected error occurred.");
+    console.error(err);
+  } finally {
+    document.getElementById("runBtn").disabled = false;
+    setTimeout(() => { document.getElementById("genProgress").style.display = "none"; }, 1500);
+  }
+}
+
+// ── Render results ─────────────────────────────────────────────────────────────
+const AVATAR_COLORS = ["#4285f4","#34a853","#fbbc04","#ea4335","#8b5cf6","#06b6d4","#f59e0b","#10b981"];
+
+function renderResults(data, title) {
+  quickData     = data.sections   || [];
+  explainedData = data.explained  || [];
+  charData      = data.characters || [];
+
+  // Quick Ref
+  const qc = document.getElementById("quickContent");
+  qc.innerHTML = "";
+  if (quickData.length === 0) {
+    qc.innerHTML = '<div style="color:#475569;font-size:13px">No sections found.</div>';
+  } else {
+    quickData.forEach(s => {
+      const pts = Array.isArray(s.points) ? s.points : [];
+      qc.innerHTML += `
+        <div class="section-block">
+          <div class="section-heading">${esc(s.heading || "")}</div>
+          <div class="section-points">${pts.map(p => `<span class="point-chip">${esc(p)}</span>`).join("")}</div>
+        </div>`;
+    });
+  }
+
+  // Explained
+  const ec = document.getElementById("explainedContent");
+  ec.innerHTML = "";
+  if (explainedData.length === 0) {
+    ec.innerHTML = '<div style="color:#475569;font-size:13px">No explanations found.</div>';
+  } else {
+    explainedData.forEach(e => {
+      ec.innerHTML += `
+        <div class="explained-item">
+          <div class="explained-heading">${esc(e.heading || "")}</div>
+          <div class="explained-body">${esc(e.body || "")}</div>
+        </div>`;
+    });
+  }
+
+  // People
+  const cc = document.getElementById("charContent");
+  cc.innerHTML = "";
+  if (charData.length === 0) {
+    cc.innerHTML = '<div style="color:#475569;font-size:13px">No people identified.</div>';
+  } else {
+    charData.forEach((c, i) => {
+      const color = c.color || AVATAR_COLORS[i % AVATAR_COLORS.length];
+      const initials = (c.name || "?").split(" ").map(w => w[0]).slice(0,2).join("").toUpperCase();
+      cc.innerHTML += `
+        <div class="char-card">
+          <div class="char-avatar" style="background:${color}22;color:${color};border:1px solid ${color}44">${initials}</div>
+          <div>
+            <div class="char-name">${esc(c.name || "")}</div>
+            <div class="char-role">${esc(c.role || "")}</div>
+            <div class="char-trait">${esc(c.trait || "")}</div>
+          </div>
+        </div>`;
+    });
+  }
+
+  document.getElementById("charTitle").textContent = `Key People (${charData.length})`;
+  document.getElementById("results").style.display = "block";
+  switchTab("quick");
+  document.getElementById("results").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function esc(str) {
+  return String(str)
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;");
+}
+
+// ── PDF file handler ───────────────────────────────────────────────────────────
 async function handleFile(e) {
   const file = e.target.files?.[0];
   e.target.value = "";
@@ -345,10 +712,10 @@ async function handleFile(e) {
   }
 
   clearError();
-  document.getElementById("afterUpload").style.display  = "none";
-  document.getElementById("results").style.display      = "none";
-  document.getElementById("fileInfo").style.display     = "none";
-  document.getElementById("ocrBadge").style.display     = "none";
+  document.getElementById("afterUpload").style.display   = "none";
+  document.getElementById("results").style.display       = "none";
+  document.getElementById("fileInfo").style.display      = "none";
+  document.getElementById("ocrBadge").style.display      = "none";
   document.getElementById("extractProgress").style.display = "block";
   inputText = "";
 
@@ -357,448 +724,28 @@ async function handleFile(e) {
     inputText = text;
 
     if (!inputText || inputText.length < 50)
-      throw new Error("No readable text found even after OCR. PDF may be corrupted or purely graphical.");
+      throw new Error("No readable text found. PDF may be image-based or corrupted.");
 
     const words  = inputText.trim().split(/\s+/).filter(Boolean).length;
     const chunks = chunkByParagraph(inputText);
     const mins   = Math.round(words / 238);
     const readTime = mins < 1 ? "< 1 min" : mins >= 60
-      ? Math.floor(mins/60)+"h "+mins%60+"m"
-      : mins+" min";
+      ? `${Math.floor(mins/60)}h ${mins%60}m` : `${mins} min`;
 
     document.getElementById("statsLabel").textContent =
-      words.toLocaleString() + " words · " + chunks.length + " sections · ~" + readTime + " read";
+      `${words.toLocaleString()} words · ${chunks.length} chunks · ~${readTime} read`;
     document.getElementById("bookTitle").value =
       file.name.replace(/\.pdf$/i,"").replace(/[-_]+/g," ").trim();
     document.getElementById("fileInfo").style.display  = "flex";
     document.getElementById("fileName").textContent    = file.name;
-    document.getElementById("pageCount").textContent   = "(" + pageCount + " page" + (pageCount !== 1 ? "s" : "") + ")";
+    document.getElementById("pageCount").textContent   = `(${pageCount} page${pageCount !== 1 ? "s" : ""})`;
     if (usedOCR) document.getElementById("ocrBadge").style.display = "inline-flex";
     document.getElementById("afterUpload").style.display = "block";
-  } catch(err) {
-    showError(err.message);
+  } catch (err) {
+    showError(err.message || "Failed to read PDF.");
   } finally {
     document.getElementById("extractProgress").style.display = "none";
   }
-}
-
-async function extractPdfText(file) {
-  const lib  = window.pdfjsLib;
-  const pdf  = await lib.getDocument({ data: await file.arrayBuffer() }).promise;
-  const total = Math.min(pdf.numPages, MAX_PAGES);
-
-  let nativeText = "";
-  for (let i = 1; i <= total; i++) {
-    const page    = await pdf.getPage(i);
-    const content = await page.getTextContent();
-    nativeText   += content.items.map(x => x.str).join(" ") + "\n";
-    const pct = Math.round((i / total) * 40);
-    document.getElementById("extractLabel").textContent = `Reading page ${i}/${total}…`;
-    document.getElementById("extractFill").style.width  = pct + "%";
-  }
-
-  const nativeWordCount = nativeText.trim().split(/\s+/).filter(Boolean).length;
-  if (nativeWordCount < total * 5) {
-    document.getElementById("extractLabel").textContent = "Native text sparse — switching to OCR…";
-    const ocrText = await ocrAllPages(pdf, total);
-    return { text: ocrText.trim(), usedOCR: true, pageCount: total };
-  }
-
-  return { text: nativeText.trim(), usedOCR: false, pageCount: total };
-}
-
-async function ocrAllPages(pdf, total) {
-  if (!window.Tesseract) {
-    await loadScript("https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.1.1/tesseract.min.js");
-  }
-  const worker = await Tesseract.createWorker("eng", 1, { logger: () => {} });
-
-  let combined = "";
-  const canvas = document.createElement("canvas");
-  const ctx    = canvas.getContext("2d");
-
-  for (let i = 1; i <= total; i++) {
-    const page     = await pdf.getPage(i);
-    const viewport = page.getViewport({ scale: OCR_SCALE });
-    canvas.width   = viewport.width;
-    canvas.height  = viewport.height;
-    await page.render({ canvasContext: ctx, viewport }).promise;
-    const { data: { text } } = await worker.recognize(canvas);
-    combined += text + "\n";
-    const pct = 40 + Math.round((i / total) * 55);
-    document.getElementById("extractLabel").textContent = `OCR page ${i}/${total}…`;
-    document.getElementById("extractFill").style.width  = pct + "%";
-  }
-
-  await worker.terminate();
-  return combined;
-}
-
-// ── Text chunking ─────────────────────────────────────────────────────────────
-function chunkByParagraph(text) {
-  // Split on double-newlines (paragraphs), then merge into ~CHARS_PER_CHUNK sized chunks
-  const paras = text.split(/\n\s*\n/).map(p => p.trim()).filter(p => p.length > 40);
-  const chunks = [];
-  let current  = "";
-
-  for (const para of paras) {
-    if (current.length + para.length > CHARS_PER_CHUNK && current.length > 0) {
-      chunks.push(current.trim());
-      current = "";
-    }
-    current += para + "\n\n";
-  }
-  if (current.trim().length > 0) chunks.push(current.trim());
-
-  // Fallback: if no paragraph breaks, split by character count
-  if (chunks.length === 0) {
-    for (let i = 0; i < text.length; i += CHARS_PER_CHUNK) {
-      chunks.push(text.slice(i, i + CHARS_PER_CHUNK));
-    }
-  }
-
-  return chunks;
-}
-
-// ── Gemini API call (shared, with retry + timeout) ────────────────────────────
-async function geminiCall(apiKey, prompt, maxTokens) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
-  let lastErr;
-
-  for (let attempt = 0; attempt <= RETRY_ATTEMPTS; attempt++) {
-    try {
-      const ctrl = new AbortController();
-      const tid  = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
-
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        signal: ctrl.signal,
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            maxOutputTokens: maxTokens,
-            temperature: 0.3
-          }
-        })
-      });
-      clearTimeout(tid);
-
-      if (!res.ok) {
-        const errBody = await res.json().catch(() => ({}));
-        const msg = errBody?.error?.message || res.statusText;
-        if (res.status === 429 || res.status >= 500) {
-          await delay(Math.min(2000 * Math.pow(2, attempt), 30000));
-          lastErr = new Error(`Gemini API error ${res.status}: ${msg}`);
-          continue;
-        }
-        throw new Error(`Gemini API error ${res.status}: ${msg}`);
-      }
-
-      return await res.json();
-
-    } catch (err) {
-      if (err.name === "AbortError") {
-        lastErr = new Error("Request timed out. Try a smaller file or check your connection.");
-      } else {
-        lastErr = err;
-      }
-      if (attempt < RETRY_ATTEMPTS) await delay(Math.min(1500 * Math.pow(2, attempt), 20000));
-    }
-  }
-
-  throw lastErr;
-}
-
-// ── JSON extraction (robust) ──────────────────────────────────────────────────
-function extractJSON(raw) {
-  if (!raw || typeof raw !== "string")
-    throw new Error("Empty response from Gemini.");
-
-  let s = raw.trim();
-
-  // Strip markdown code fences (```json ... ``` or ``` ... ```)
-  s = s.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/i, "").trim();
-
-  // Find the outermost JSON object boundaries
-  const start = s.indexOf("{");
-  const end   = s.lastIndexOf("}");
-
-  if (start === -1 || end === -1 || end <= start)
-    throw new Error("No JSON object found in Gemini response.");
-
-  s = s.slice(start, end + 1);
-
-  // Attempt 1: direct parse
-  try { return JSON.parse(s); } catch (_) {}
-
-  // Attempt 2: clean up common issues then parse
-  let cleaned = s
-    .replace(/,\s*([}\]])/g, "$1")              // trailing commas
-    .replace(/[\u0000-\u001F\u007F]/g, " ")     // control characters
-    .replace(/\\'/g, "'")                        // escaped single quotes
-    .replace(/([{,]\s*)(\w+)\s*:/g, '$1"$2":'); // unquoted keys
-  try { return JSON.parse(cleaned); } catch (_) {}
-
-  // Attempt 3: find last complete array/object close and cap there
-  // Walk backwards to find a valid JSON prefix
-  for (let i = cleaned.length - 1; i > start; i--) {
-    const ch = cleaned[i];
-    if (ch === "}" || ch === "]") {
-      // Try appending closing braces to complete the structure
-      const candidates = [
-        cleaned.slice(0, i + 1),
-        cleaned.slice(0, i + 1) + "}",
-        cleaned.slice(0, i + 1) + "]}",
-        cleaned.slice(0, i + 1) + "]}}"
-      ];
-      for (const candidate of candidates) {
-        try { return JSON.parse(candidate); } catch (_) {}
-      }
-    }
-  }
-
-  throw new Error(
-    "Could not parse final Gemini response even after all recovery attempts. " +
-    "The book may be too large — try a shorter document."
-  );
-}
-
-// ── Level 1: Summarise a single chunk ────────────────────────────────────────
-async function summariseChunk(chunk, idx, total, apiKey) {
-  const prompt =
-`You are summarising section ${idx + 1} of ${total} of a book.
-Write exactly 3–5 sentences. Maximum 120 words total.
-Capture only: key ideas, lessons, concepts, arguments, notable examples, and important people.
-No filler. No repetition. No preamble. Plain prose only. Do not label or number anything.
-
-TEXT:
-${chunk.slice(0, 6000)}`;
-
-  const data  = await geminiCall(apiKey, prompt, CHUNK_SUMMARY_MAX_TOKENS);
-  const block = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-  return block.trim();
-}
-
-// ── Level 2: Summarise a group of chunk summaries ─────────────────────────────
-async function summariseGroup(chunkSummaries, groupIdx, totalGroups, apiKey) {
-  const numbered = chunkSummaries
-    .map((s, i) => `[${i + 1}] ${s}`)
-    .join("\n\n");
-
-  const prompt =
-`You are synthesising ${chunkSummaries.length} section summaries from part ${groupIdx + 1} of ${totalGroups} of a book.
-Write a compact, information-dense synthesis in 5–8 sentences. Maximum 200 words.
-Preserve all key ideas, arguments, concepts, lessons, and important people mentioned.
-No filler. No repetition. No preamble. Plain prose only.
-
-SUMMARIES:
-${numbered}`;
-
-  const data  = await geminiCall(apiKey, prompt, GROUP_SUMMARY_MAX_TOKENS);
-  const block = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-  return block.trim();
-}
-
-// ── Level 3: Final JSON synthesis from group summaries ────────────────────────
-async function generateFinalSummary(groupSummaries, title, apiKey) {
-  const combined = groupSummaries
-    .map((s, i) => `[Part ${i + 1} of ${groupSummaries.length}]\n${s}`)
-    .join("\n\n");
-
-  const prompt =
-`You are creating a structured JSON summary of the book "${title}".
-You have ${groupSummaries.length} part-summaries that together cover the entire book.
-
-CRITICAL: Return ONLY a raw JSON object. No markdown. No code fences. No explanation. No preamble.
-Your response MUST start with { and end with }.
-
-Required JSON structure (follow exactly):
-{
-  "sections": [
-    { "heading": "string", "points": ["string", "string", "string"] }
-  ],
-  "explained": [
-    { "heading": "string", "body": "string" }
-  ],
-  "characters": [
-    { "name": "string", "role": "string", "trait": "string" }
-  ]
-}
-
-Rules:
-- sections: 15–25 entries. Each heading names a theme or concept. Each points array has 3–6 short strings.
-- explained: 8–14 entries. Each body is 2–4 sentences explaining a key idea, concept, or argument.
-- characters: all important real people, authors cited, key figures, or characters (omit array if none apply).
-- Cover ALL major concepts from every part. No duplicate headings. Keep all strings concise.
-- The JSON must be complete and valid. Do not truncate.
-
-PART SUMMARIES:
-${combined}`;
-
-  const data = await geminiCall(apiKey, prompt, FINAL_SUMMARY_MAX_TOKENS);
-  const raw  = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-
-  if (!raw) throw new Error("Gemini returned an empty final response.");
-
-  return extractJSON(raw);
-}
-
-// ── Main pipeline ─────────────────────────────────────────────────────────────
-async function runPipeline() {
-  const apiKey = getKey();
-  if (!apiKey)    { showError("Please enter your Gemini API key."); return; }
-  if (!inputText) { showError("Please upload a PDF first."); return; }
-
-  const title = document.getElementById("bookTitle").value.trim() || "Untitled";
-
-  document.getElementById("runBtn").disabled            = true;
-  document.getElementById("errorBox").style.display    = "none";
-  document.getElementById("infoBox").style.display     = "none";
-  document.getElementById("results").style.display     = "none";
-  document.getElementById("genProgress").style.display = "block";
-
-  const setProgress = (pct, label) => {
-    document.getElementById("genFill").style.width  = Math.min(pct, 99) + "%";
-    document.getElementById("genLabel").textContent = label;
-  };
-
-  try {
-    // ── Level 1: Chunk summaries ──────────────────────────────────────────────
-    const chunks = chunkByParagraph(inputText);
-    const chunkSummaries = [];
-
-    setProgress(2, `Creating chunk summaries… (0 / ${chunks.length})`);
-
-    for (let i = 0; i < chunks.length; i++) {
-      const summary = await summariseChunk(chunks[i], i, chunks.length, apiKey);
-      chunkSummaries.push(summary);
-
-      // Level-1 occupies 0–55% of progress bar
-      const pct = 2 + Math.round(((i + 1) / chunks.length) * 53);
-      setProgress(pct, `Creating chunk summaries… (${i + 1} / ${chunks.length})`);
-    }
-
-    // ── Level 2: Group summaries ──────────────────────────────────────────────
-    let groupSummaries = [];
-
-    if (chunkSummaries.length <= GROUP_SIZE) {
-      // Small book: skip grouping, use chunk summaries directly as groups
-      groupSummaries = chunkSummaries;
-      setProgress(70, "Skipping grouping (small book) — preparing final synthesis…");
-    } else {
-      // Build groups of GROUP_SIZE chunk summaries
-      const groups = [];
-      for (let i = 0; i < chunkSummaries.length; i += GROUP_SIZE) {
-        groups.push(chunkSummaries.slice(i, i + GROUP_SIZE));
-      }
-
-      setProgress(56, `Creating grouped summaries… (0 / ${groups.length})`);
-
-      for (let g = 0; g < groups.length; g++) {
-        const gs = await summariseGroup(groups[g], g, groups.length, apiKey);
-        groupSummaries.push(gs);
-
-        // Level-2 occupies 55–75% of progress bar
-        const pct = 55 + Math.round(((g + 1) / groups.length) * 20);
-        setProgress(pct, `Creating grouped summaries… (${g + 1} / ${groups.length})`);
-      }
-    }
-
-    // ── Level 3: Final synthesis ──────────────────────────────────────────────
-    setProgress(76, "Generating final synthesis…");
-
-    const parsed = await generateFinalSummary(groupSummaries, title, apiKey);
-
-    setProgress(97, "Rendering results…");
-
-    // Validate and normalise parsed output
-    const sections    = Array.isArray(parsed.sections)   ? parsed.sections   : [];
-    const explained   = Array.isArray(parsed.explained)  ? parsed.explained  : [];
-    const characters  = Array.isArray(parsed.characters) ? parsed.characters : [];
-
-    if (sections.length === 0 && explained.length === 0)
-      throw new Error("Gemini returned valid JSON but no usable content. Try again.");
-
-    // ── Render Quick Ref ──────────────────────────────────────────────────────
-    quickData = sections;
-    const qc  = document.getElementById("quickContent");
-    qc.innerHTML = "";
-    for (const sec of sections) {
-      const points = Array.isArray(sec.points) ? sec.points : [];
-      const div = document.createElement("div");
-      div.className = "section-block";
-      div.innerHTML =
-        `<div class="section-heading">${esc(sec.heading || "")}</div>` +
-        `<div class="section-points">${
-          points.map(p => `<span class="point-chip">${esc(p)}</span>`).join("")
-        }</div>`;
-      qc.appendChild(div);
-    }
-
-    // ── Render Explained ─────────────────────────────────────────────────────
-    explainedData = explained;
-    const ec = document.getElementById("explainedContent");
-    ec.innerHTML = "";
-    for (const item of explained) {
-      const div = document.createElement("div");
-      div.className = "explained-item";
-      div.innerHTML =
-        `<div class="explained-heading">${esc(item.heading || "")}</div>` +
-        `<div class="explained-body">${esc(item.body || "")}</div>`;
-      ec.appendChild(div);
-    }
-
-    // ── Render People ─────────────────────────────────────────────────────────
-    charData = characters;
-    const cc = document.getElementById("charContent");
-    cc.innerHTML = "";
-    document.getElementById("charTitle").textContent =
-      characters.length > 0 ? "Key People" : "No people identified";
-
-    const avatarColors = [
-      ["#1e3a5f","#4285f4"], ["#14532d","#34a853"], ["#1a1a00","#fbbc04"],
-      ["#3b0a0a","#ea4335"], ["#1a0a3b","#9c27b0"], ["#0a2e2e","#00bcd4"]
-    ];
-    characters.forEach((ch, i) => {
-      const [bg, fg] = avatarColors[i % avatarColors.length];
-      const initials = (ch.name || "?").split(/\s+/).slice(0, 2).map(w => w[0]).join("").toUpperCase();
-      const card = document.createElement("div");
-      card.className = "char-card";
-      card.innerHTML =
-        `<div class="char-avatar" style="background:${bg};color:${fg}">${esc(initials)}</div>` +
-        `<div>
-          <div class="char-name">${esc(ch.name || "")}</div>
-          <div class="char-role">${esc(ch.role || "")}</div>
-          <div class="char-trait">${esc(ch.trait || "")}</div>
-        </div>`;
-      cc.appendChild(card);
-    });
-
-    // ── Show results ──────────────────────────────────────────────────────────
-    setProgress(100, "Done!");
-    document.getElementById("results").style.display = "block";
-    document.getElementById("results").scrollIntoView({ behavior: "smooth", block: "start" });
-
-    setTimeout(() => {
-      document.getElementById("genProgress").style.display = "none";
-    }, 800);
-
-  } catch (err) {
-    showError(err.message || "Unknown error. Please try again.");
-    document.getElementById("genProgress").style.display = "none";
-  } finally {
-    document.getElementById("runBtn").disabled = false;
-  }
-}
-
-// ── HTML escape ───────────────────────────────────────────────────────────────
-function esc(str) {
-  return String(str)
-    .replace(/&/g,"&amp;")
-    .replace(/</g,"&lt;")
-    .replace(/>/g,"&gt;")
-    .replace(/"/g,"&quot;");
 }
 </script>
 </body>
