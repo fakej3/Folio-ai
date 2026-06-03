@@ -39,11 +39,13 @@ input[type=text]:focus,input[type=password]:focus{border-color:#4285f4}
 .btn-indigo:disabled{background:#1e3a5f;box-shadow:none;cursor:not-allowed;transform:none;opacity:0.6}
 .btn-save{background:#4285f4}
 .btn-saved{background:#14532d;border:1px solid #166534;color:#fff}
+.btn-resume{background:#7c3aed;box-shadow:0 4px 14px rgba(124,58,237,0.3)}
+.btn-resume:hover{box-shadow:0 6px 18px rgba(124,58,237,0.45);transform:translateY(-1px)}
 
 .btn-copy{display:inline-flex;align-items:center;gap:6px;background:#1e293b;border:1px solid #334155;border-radius:7px;color:#94a3b8;font-size:11px;font-weight:600;padding:5px 12px;cursor:pointer;transition:all 0.15s;flex-shrink:0}
 .btn-copy:hover{background:#334155;color:#e2e8f0}
 
-.tab-bar{display:flex;gap:3px;background:#080f1e;border:1px solid #1e293b;border-radius:11px;padding:4px;width:fit-content;margin-bottom:18px}
+.tab-bar{display:flex;gap:3px;background:#080f1e;border:1px solid #1e293b;border-radius:11px;padding:4px;width:fit-content;margin-bottom:18px;flex-wrap:wrap}
 .tab{background:transparent;border:none;border-radius:8px;color:#475569;font-size:12px;font-weight:600;padding:7px 15px;cursor:pointer;transition:all 0.15s;white-space:nowrap;font-family:system-ui,sans-serif}
 .tab.active{background:#1e293b;color:#e2e8f0}
 
@@ -58,9 +60,11 @@ input[type=text]:focus,input[type=password]:focus{border-color:#4285f4}
 
 .error-box{background:#1a0808;border:1px solid #7f1d1d;border-radius:10px;padding:12px 16px;color:#f87171;font-size:12px;margin-bottom:14px;font-family:monospace;display:flex;gap:8px;align-items:flex-start}
 .info-box{background:#0f1a2e;border:1px solid #1e3a5f;border-radius:10px;padding:10px 14px;color:#64748b;font-size:11px;margin-bottom:14px;font-family:monospace}
+.resume-box{background:#120a2e;border:1px solid #3b1f6e;border-radius:10px;padding:12px 16px;color:#a78bfa;font-size:12px;margin-bottom:14px;font-family:monospace;display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 .toast{position:fixed;bottom:24px;right:24px;background:#16a34a;color:#fff;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;box-shadow:0 4px 20px rgba(22,163,74,0.4);transition:all 0.2s;pointer-events:none;z-index:999}
 
 .ocr-badge{display:inline-flex;align-items:center;gap:5px;background:#1a1a2e;border:1px solid #2d2d5e;border-radius:5px;padding:3px 8px;font-size:10px;color:#8888cc;font-family:monospace;margin-left:8px}
+.chapter-badge{display:inline-flex;align-items:center;gap:5px;background:#1a2e1a;border:1px solid #2d5e2d;border-radius:5px;padding:3px 8px;font-size:10px;color:#88cc88;font-family:monospace;margin-left:8px}
 
 .sections-grid{display:flex;flex-direction:column;gap:10px}
 .section-block{background:#0a1628;border:1px solid #1e293b;border-radius:10px;padding:12px 16px}
@@ -78,7 +82,18 @@ input[type=text]:focus,input[type=password]:focus{border-color:#4285f4}
 .char-avatar{width:34px;height:34px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;font-family:monospace}
 .char-name{font-size:13px;font-weight:700;color:#e2e8f0}
 .char-role{font-size:11px;color:#475569;margin-top:2px}
-.char-trait{font-size:11px;font-style:italic;margin-top:4px;font-family:Georgia,serif}
+.char-trait{font-size:11px;font-style:italic;margin-top:4px;font-family:Georgia,serif;color:#64748b}
+
+.chapters-list{display:flex;flex-direction:column;gap:14px}
+.chapter-item{background:#0a1628;border:1px solid #1e293b;border-radius:10px;padding:14px 18px}
+.chapter-num{font-size:9px;font-weight:800;letter-spacing:0.12em;color:#34a853;font-family:monospace;text-transform:uppercase;margin-bottom:4px}
+.chapter-name{font-size:14px;font-weight:700;color:#e2e8f0;font-family:Georgia,serif;margin-bottom:8px}
+.chapter-summary{font-size:13px;color:#64748b;line-height:1.65;font-family:Georgia,serif}
+
+.quotes-list{display:flex;flex-direction:column;gap:12px}
+.quote-item{background:#0a1628;border-left:3px solid #fbbc04;border-radius:0 10px 10px 0;padding:14px 18px}
+.quote-text{font-size:14px;color:#e2e8f0;font-family:Georgia,serif;font-style:italic;line-height:1.65;margin-bottom:6px}
+.quote-context{font-size:11px;color:#475569;font-family:monospace}
 </style>
 </head>
 <body>
@@ -129,13 +144,14 @@ input[type=text]:focus,input[type=password]:focus{border-color:#4285f4}
     Choose PDF File
     <input type="file" id="fileInput" accept="application/pdf,.pdf" onchange="handleFile(event)" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:0"/>
   </label>
-  <div style="font-size:11px;color:#334155;margin-top:8px;font-family:monospace">Max 25 MB · 300 pages · OCR supported for scanned PDFs</div>
+  <div style="font-size:11px;color:#334155;margin-top:8px;font-family:monospace">Max 25 MB · 300 pages · Smart OCR for image-based pages</div>
 
   <div id="fileInfo" style="display:none;margin-top:12px;align-items:center;gap:7px;flex-wrap:wrap">
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
     <span id="fileName" style="font-size:13px;color:#22c55e;font-family:monospace"></span>
     <span id="pageCount" style="font-size:11px;color:#475569;font-family:monospace"></span>
-    <span id="ocrBadge" class="ocr-badge" style="display:none">OCR mode</span>
+    <span id="ocrBadge" class="ocr-badge" style="display:none">OCR pages</span>
+    <span id="chapterBadge" class="chapter-badge" style="display:none">Chapters detected</span>
   </div>
 
   <div id="extractProgress" style="display:none;margin-top:10px">
@@ -160,6 +176,14 @@ input[type=text]:focus,input[type=password]:focus{border-color:#4285f4}
   </div>
 </div>
 
+<div id="resumeBox" class="resume-box" style="display:none">
+  <span id="resumeMsg">⚡ Previous progress found — resume from checkpoint?</span>
+  <div style="display:flex;gap:8px;flex-shrink:0">
+    <button class="btn btn-resume" onclick="resumePipeline()" style="padding:6px 14px;font-size:12px">Resume</button>
+    <button class="btn" onclick="clearCheckpoint()" style="background:#1e293b;padding:6px 14px;font-size:12px">Discard</button>
+  </div>
+</div>
+
 <div id="errorBox" class="error-box" style="display:none"><span>⚠</span><span id="errorMsg"></span></div>
 <div id="infoBox" class="info-box" style="display:none"></div>
 
@@ -168,6 +192,8 @@ input[type=text]:focus,input[type=password]:focus{border-color:#4285f4}
     <button class="tab active" onclick="switchTab('quick')">Quick Ref</button>
     <button class="tab" onclick="switchTab('explained')">Explained</button>
     <button class="tab" onclick="switchTab('characters')">People</button>
+    <button class="tab" onclick="switchTab('chapters')">Chapters</button>
+    <button class="tab" onclick="switchTab('quotes')">Quotes</button>
   </div>
 
   <div id="tab-quick" class="panel">
@@ -207,6 +233,34 @@ input[type=text]:focus,input[type=password]:focus{border-color:#4285f4}
     </div>
     <div class="panel-body"><div id="charContent" class="char-grid"></div></div>
   </div>
+
+  <div id="tab-chapters" class="panel" style="display:none">
+    <div class="panel-head">
+      <div style="display:flex;align-items:center">
+        <span class="panel-badge" style="color:#34a853;background:#34a85318;border:1px solid #34a85330">CHAPTERS</span>
+        <span class="panel-title" id="chaptersTitle">Chapter Summaries</span>
+      </div>
+      <button class="btn-copy" onclick="copyChapters()">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy
+      </button>
+    </div>
+    <div class="panel-body"><div id="chaptersContent" class="chapters-list"></div></div>
+  </div>
+
+  <div id="tab-quotes" class="panel" style="display:none">
+    <div class="panel-head">
+      <div style="display:flex;align-items:center">
+        <span class="panel-badge" style="color:#fbbc04;background:#fbbc0418;border:1px solid #fbbc0430">QUOTES</span>
+        <span class="panel-title">Key Quotes & Principles</span>
+      </div>
+      <button class="btn-copy" onclick="copyQuotes()">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy
+      </button>
+    </div>
+    <div class="panel-body"><div id="quotesContent" class="quotes-list"></div></div>
+  </div>
 </div>
 
 </main>
@@ -218,28 +272,77 @@ input[type=text]:focus,input[type=password]:focus{border-color:#4285f4}
 
 <script>
 // ── Constants ──────────────────────────────────────────────────────────────────
-const MAX_FILE_MB              = 25;
-const MAX_PAGES                = 300;
-const OCR_SCALE                = 2.0;
-const GEMINI_MODEL             = "gemini-2.5-flash";
-const CHUNK_SUMMARY_MAX_TOKENS = 350;
-const GROUP_SUMMARY_MAX_TOKENS = 500;
-const MASTER_SUMMARY_MAX_TOKENS = 1500;
-const FINAL_JSON_MAX_TOKENS    = 10000;
-const RETRY_ATTEMPTS           = 4;
-const TIMEOUT_MS               = 120000;
-const CHARS_PER_CHUNK          = 18000;  // ~4500 words per chunk
-const GROUP_SIZE               = 8;      // chunk summaries per group
+const MAX_FILE_MB               = 25;
+const MAX_PAGES                 = 300;
+const OCR_SCALE                 = 2.0;
+const OCR_MIN_TEXT_THRESHOLD    = 30;  // characters; below this triggers OCR for that page
+const GEMINI_MODEL              = "gemini-2.5-flash";
+const CHUNK_SUMMARY_MAX_TOKENS  = 400;
+const GROUP_SUMMARY_MAX_TOKENS  = 600;
+const SUPER_GROUP_MAX_TOKENS    = 700;
+const MASTER_SUMMARY_MAX_TOKENS = 2000;
+const SECTION_JSON_MAX_TOKENS   = 4000;
+const EXPLAINED_JSON_MAX_TOKENS = 4000;
+const CHAR_JSON_MAX_TOKENS      = 3000;
+const QUOTES_JSON_MAX_TOKENS    = 3000;
+const CHAPTER_SUMMARY_MAX_TOKENS= 400;
+const RETRY_ATTEMPTS            = 4;
+const TIMEOUT_MS                = 120000;
+const CHARS_PER_CHUNK           = 5000;
+const GROUP_SIZE                = 8;
+const SUPER_GROUP_SIZE          = 6;
+const SUPER_GROUP_THRESHOLD     = 12; // use super-groups when >12 groups
+
+// Chapter detection regex
+const CHAPTER_RE = /^(chapter\s+(\d+|[ivxlcdm]+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|\w+)|part\s+(i{1,3}|iv|v|vi|vii|viii|ix|x|\d+|one|two|three|four|five)|book\s+(one|two|three|four|five|\d+)|prologue|epilogue|introduction|preface|foreword|afterword|conclusion)/i;
 
 // ── State ──────────────────────────────────────────────────────────────────────
-let inputText = "", quickData = [], explainedData = [], charData = [];
+let inputText = "";
+let detectedChapters = [];
+let quickData = [], explainedData = [], charData = [], chapterData = [], quotesData = [];
 let _savedKey = "";
+
+// ── Checkpoint keys ────────────────────────────────────────────────────────────
+const CK_TITLE          = "folio_ck_title";
+const CK_CHUNK_SUMS     = "folio_ck_chunk_sums";
+const CK_GROUP_SUMS     = "folio_ck_group_sums";
+const CK_SUPER_SUMS     = "folio_ck_super_sums";
+const CK_MASTER         = "folio_ck_master";
+const CK_CHAPTER_SUMS   = "folio_ck_chapter_sums";
+const CK_STAGE          = "folio_ck_stage"; // how far we got
+
+function saveCheckpoint(key, value) {
+  try { sessionStorage.setItem(key, JSON.stringify(value)); } catch {}
+}
+function loadCheckpoint(key) {
+  try {
+    const v = sessionStorage.getItem(key);
+    return v ? JSON.parse(v) : null;
+  } catch { return null; }
+}
+function clearCheckpoint() {
+  [CK_TITLE,CK_CHUNK_SUMS,CK_GROUP_SUMS,CK_SUPER_SUMS,CK_MASTER,CK_CHAPTER_SUMS,CK_STAGE].forEach(k => {
+    try { sessionStorage.removeItem(k); } catch {}
+  });
+  document.getElementById("resumeBox").style.display = "none";
+}
 
 // ── Load saved key ─────────────────────────────────────────────────────────────
 try {
   const saved = sessionStorage.getItem("folio_gemini_key");
   if (saved) { _savedKey = saved; document.getElementById("apiKeyInput").value = saved; markSaved(); }
 } catch {}
+
+// ── Check for existing checkpoint on load ──────────────────────────────────────
+(function checkResumeOnLoad() {
+  const stage = loadCheckpoint(CK_STAGE);
+  if (stage && stage > 0) {
+    const title = loadCheckpoint(CK_TITLE) || "unknown book";
+    document.getElementById("resumeMsg").textContent =
+      `⚡ Previous progress for "${title}" found (stage ${stage}) — resume?`;
+    document.getElementById("resumeBox").style.display = "flex";
+  }
+})();
 
 // ── Key helpers ────────────────────────────────────────────────────────────────
 function toggleKeyVis() {
@@ -293,25 +396,46 @@ function setProgress(fillId, labelId, pct, label) {
 
 // ── Tab switching ──────────────────────────────────────────────────────────────
 function switchTab(name) {
-  ["quick","explained","characters"].forEach(t => {
+  ["quick","explained","characters","chapters","quotes"].forEach(t => {
     document.getElementById("tab-"+t).style.display = t === name ? "block" : "none";
   });
   document.querySelectorAll(".tab").forEach((btn, i) => {
-    btn.classList.toggle("active", ["quick","explained","characters"][i] === name);
+    btn.classList.toggle("active", ["quick","explained","characters","chapters","quotes"][i] === name);
   });
 }
 
 // ── Copy helpers ───────────────────────────────────────────────────────────────
 function copyQuick() {
-  const text = quickData.map(s => s.heading + "\n" + s.points.map(p => "  • " + p).join("\n")).join("\n\n");
+  const text = quickData.map(s => s.heading + "\n" + (s.points||[]).map(p => "  • " + p).join("\n")).join("\n\n");
   navigator.clipboard.writeText(text).then(showToast);
 }
 function copyExplained() {
   const text = explainedData.map(e => e.heading + "\n" + e.body).join("\n\n");
   navigator.clipboard.writeText(text).then(showToast);
 }
+function copyChapters() {
+  const text = chapterData.map(c => (c.number ? `Chapter ${c.number}: ` : "") + (c.title||"") + "\n" + (c.summary||"")).join("\n\n");
+  navigator.clipboard.writeText(text).then(showToast);
+}
+function copyQuotes() {
+  const text = quotesData.map(q => `"${q.text}"` + (q.context ? `\n— ${q.context}` : "")).join("\n\n");
+  navigator.clipboard.writeText(text).then(showToast);
+}
 
-// ── PDF extraction ─────────────────────────────────────────────────────────────
+// ── Chapter detection ──────────────────────────────────────────────────────────
+function detectChapterBoundaries(text) {
+  const lines = text.split(/\n/);
+  const boundaries = [];
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (line.length > 0 && line.length < 100 && CHAPTER_RE.test(line)) {
+      boundaries.push({ lineIndex: i, title: line });
+    }
+  }
+  return boundaries;
+}
+
+// ── PDF extraction (smart OCR) ─────────────────────────────────────────────────
 async function extractPdfText(file) {
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
@@ -321,7 +445,7 @@ async function extractPdfText(file) {
     throw new Error(`PDF has ${pageCount} pages. Maximum is ${MAX_PAGES}.`);
 
   let fullText = "";
-  let usedOCR = false;
+  let ocrPageCount = 0;
   const total = pageCount;
 
   for (let p = 1; p <= total; p++) {
@@ -332,28 +456,75 @@ async function extractPdfText(file) {
     const content = await page.getTextContent();
     const pageText = content.items.map(i => i.str).join(" ").trim();
 
-    if (pageText.length > 30) {
+    if (pageText.length >= OCR_MIN_TEXT_THRESHOLD) {
+      // Good native text — use it directly
       fullText += pageText + "\n\n";
     } else {
-      // OCR fallback for image-based pages
-      usedOCR = true;
+      // Only OCR this specific page (sparse text or image-based)
+      ocrPageCount++;
       try {
         const viewport = page.getViewport({ scale: OCR_SCALE });
         const canvas = document.createElement("canvas");
         canvas.width = viewport.width; canvas.height = viewport.height;
         const ctx = canvas.getContext("2d");
         await page.render({ canvasContext: ctx, viewport }).promise;
-        // Store as marker — real OCR would need Tesseract; we flag the page
-        fullText += `[Page ${p}: image-based content]\n\n`;
-      } catch { /* skip */ }
+        // Mark as image page; full OCR would need Tesseract
+        fullText += `[Page ${p}: image-based — ${pageText || "no text extracted"}]\n\n`;
+      } catch {
+        fullText += `[Page ${p}: could not render]\n\n`;
+      }
     }
   }
 
   document.getElementById("extractProgress").style.display = "none";
-  return { text: fullText.trim(), usedOCR, pageCount };
+  const chapters = detectChapterBoundaries(fullText);
+  return { text: fullText.trim(), ocrPageCount, pageCount, chapters };
 }
 
-// ── Text chunking ──────────────────────────────────────────────────────────────
+// ── Text chunking (chapter-aware) ──────────────────────────────────────────────
+function chunkText(text, chapterBoundaries) {
+  // If we have chapter boundaries, split by chapters first
+  if (chapterBoundaries && chapterBoundaries.length >= 2) {
+    return chunkByChapters(text, chapterBoundaries);
+  }
+  return chunkByParagraph(text);
+}
+
+function chunkByChapters(text, boundaries) {
+  const lines = text.split("\n");
+  const chunks = [];
+
+  for (let b = 0; b < boundaries.length; b++) {
+    const startLine = boundaries[b].lineIndex;
+    const endLine   = b + 1 < boundaries.length ? boundaries[b + 1].lineIndex : lines.length;
+    const chapterText = lines.slice(startLine, endLine).join("\n").trim();
+    const chapterTitle = boundaries[b].title;
+
+    // Sub-chunk large chapters
+    if (chapterText.length > CHARS_PER_CHUNK) {
+      const subChunks = chunkByParagraph(chapterText);
+      subChunks.forEach((sc, i) => {
+        chunks.push({ text: sc, chapter: chapterTitle, subChunk: i + 1, totalSubs: subChunks.length });
+      });
+    } else if (chapterText.length > 100) {
+      chunks.push({ text: chapterText, chapter: chapterTitle, subChunk: 1, totalSubs: 1 });
+    }
+  }
+
+  // Also grab any text before the first chapter
+  if (boundaries.length > 0 && boundaries[0].lineIndex > 5) {
+    const preamble = lines.slice(0, boundaries[0].lineIndex).join("\n").trim();
+    if (preamble.length > 100) {
+      const subChunks = chunkByParagraph(preamble);
+      subChunks.forEach((sc, i) => {
+        chunks.unshift({ text: sc, chapter: "Introduction/Preamble", subChunk: i + 1, totalSubs: subChunks.length });
+      });
+    }
+  }
+
+  return chunks.length > 0 ? chunks : chunkByParagraph(text).map(t => ({ text: t, chapter: null }));
+}
+
 function chunkByParagraph(text) {
   const paragraphs = text.split(/\n\s*\n/).map(p => p.trim()).filter(p => p.length > 40);
   const chunks = [];
@@ -368,7 +539,7 @@ function chunkByParagraph(text) {
     }
   }
   if (current.trim()) chunks.push(current.trim());
-  return chunks;
+  return chunks.map(t => ({ text: t, chapter: null }));
 }
 
 // ── Gemini API call ────────────────────────────────────────────────────────────
@@ -428,29 +599,67 @@ async function callGemini(apiKey, prompt, maxTokens, useJsonMode = false) {
 function robustJsonParse(raw) {
   if (!raw || typeof raw !== "string") return null;
 
-  // 1. Try direct parse first
+  // 1. Direct parse
   try { return JSON.parse(raw); } catch {}
 
   // 2. Strip markdown code fences
   let cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/, "").trim();
   try { return JSON.parse(cleaned); } catch {}
 
-  // 3. Extract the first { ... } block
+  // 3. Extract first {...} block
   const start = cleaned.indexOf("{");
   const end   = cleaned.lastIndexOf("}");
   if (start !== -1 && end !== -1 && end > start) {
     const extracted = cleaned.slice(start, end + 1);
     try { return JSON.parse(extracted); } catch {}
 
-    // 4. Fix trailing commas before ] or }
-    const fixedCommas = extracted
+    // 4. Fix trailing commas, unquoted keys, single-quoted values
+    let fixed = extracted
       .replace(/,\s*([}\]])/g, "$1")
-      .replace(/([{,]\s*)(\w+)\s*:/g, (_, prefix, key) => `${prefix}"${key}":`)  // unquoted keys
-      .replace(/:\s*'([^']*)'/g, ': "$1"');  // single-quoted values
-    try { return JSON.parse(fixedCommas); } catch {}
+      .replace(/([{,]\s*)(\w[\w\s]*?)\s*:/g, (m, prefix, key) => {
+        const trimKey = key.trim();
+        // Only quote if not already a number
+        return /^\d+$/.test(trimKey) ? m : `${prefix}"${trimKey}":`;
+      })
+      .replace(/:\s*'([^']*)'/g, ': "$1"');
+    try { return JSON.parse(fixed); } catch {}
+
+    // 5. Attempt to close truncated JSON
+    const repaired = repairTruncated(fixed);
+    if (repaired) {
+      try { return JSON.parse(repaired); } catch {}
+    }
+  }
+
+  // 6. Try extracting array if no object found
+  const aStart = cleaned.indexOf("[");
+  const aEnd   = cleaned.lastIndexOf("]");
+  if (aStart !== -1 && aEnd !== -1 && aEnd > aStart) {
+    try { return JSON.parse(cleaned.slice(aStart, aEnd + 1)); } catch {}
   }
 
   return null;
+}
+
+function repairTruncated(str) {
+  // Count open brackets/braces to determine what needs closing
+  let braces = 0, brackets = 0, inString = false, escaped = false;
+  for (const ch of str) {
+    if (escaped) { escaped = false; continue; }
+    if (ch === "\\") { escaped = true; continue; }
+    if (ch === '"') { inString = !inString; continue; }
+    if (inString) continue;
+    if (ch === "{") braces++;
+    if (ch === "}") braces--;
+    if (ch === "[") brackets++;
+    if (ch === "]") brackets--;
+  }
+  // Remove trailing incomplete token
+  let repaired = str.replace(/,\s*$/, "").replace(/:\s*"[^"]*$/, ': ""').replace(/:\s*$/, ': null');
+  // Close open brackets/braces
+  for (let i = 0; i < brackets; i++) repaired += "]";
+  for (let i = 0; i < braces; i++) repaired += "}";
+  return repaired;
 }
 
 // ── JSON repair via Gemini ─────────────────────────────────────────────────────
@@ -458,179 +667,400 @@ async function repairJson(brokenJson, apiKey) {
   const prompt = `The following text should be valid JSON but has formatting errors. Fix it and return ONLY the corrected JSON with no explanation, no markdown, no code fences. The response must start with { and end with }.
 
 ${brokenJson.slice(0, 8000)}`;
-
   const raw = await callGemini(apiKey, prompt, 8000, true);
   const parsed = robustJsonParse(raw);
   if (!parsed) throw new Error("JSON repair failed.");
   return parsed;
 }
 
-// ── Summarization pipeline ────────────────────────────────────────────────────
+// Validate and ensure required fields exist on a parsed JSON result
+function ensureFields(obj, defaults) {
+  if (!obj || typeof obj !== "object") return { ...defaults };
+  const result = { ...defaults };
+  for (const key of Object.keys(defaults)) {
+    if (Array.isArray(defaults[key])) {
+      result[key] = Array.isArray(obj[key]) ? obj[key] : [];
+    } else {
+      result[key] = obj[key] ?? defaults[key];
+    }
+  }
+  return result;
+}
 
-// Level 1: summarise a single chunk
+// ── Summarisation pipeline ─────────────────────────────────────────────────────
+
 async function summariseChunk(chunk, idx, total, apiKey) {
-  const prompt = `Summarise the following book passage concisely. Capture all important ideas, arguments, examples, and key people mentioned. Write in plain prose, 3-6 sentences. Passage ${idx+1} of ${total}:
+  const chapterNote = chunk.chapter ? ` (from "${chunk.chapter}")` : "";
+  const prompt = `Summarise the following book passage${chapterNote} concisely. Capture all important ideas, arguments, examples, and key people mentioned. Write in plain prose, 3-6 sentences. Passage ${idx+1} of ${total}:
 
-${chunk}`;
+${chunk.text}`;
   return callGemini(apiKey, prompt, CHUNK_SUMMARY_MAX_TOKENS);
 }
 
-// Level 2: summarise a group of chunk summaries
-async function summariseGroup(summaries, groupIdx, apiKey) {
+async function summariseGroup(summaries, groupIdx, total, apiKey) {
   const combined = summaries.map((s, i) => `[${i+1}] ${s}`).join("\n\n");
-  const prompt = `You have ${summaries.length} consecutive passage summaries from a book. Merge them into one coherent synthesis. Preserve all key ideas, arguments, examples, lessons, and named people. Write in plain prose, 5-10 sentences.
+  const prompt = `You have ${summaries.length} consecutive passage summaries from a book. Merge them into one coherent synthesis (group ${groupIdx+1} of ${total}). Preserve all key ideas, arguments, examples, lessons, and named people. Write in plain prose, 5-10 sentences.
 
 ${combined}`;
   return callGemini(apiKey, prompt, GROUP_SUMMARY_MAX_TOKENS);
 }
 
-// Level 3: create a single master summary from all group summaries
-async function summariseMaster(groupSummaries, title, apiKey) {
+async function summariseSuperGroup(groupSummaries, sgIdx, total, apiKey) {
   const combined = groupSummaries.map((s, i) => `[Group ${i+1}]\n${s}`).join("\n\n---\n\n");
-  const prompt = `You are creating a master overview of the book "${title}" from ${groupSummaries.length} section summaries covering the entire book.
+  const prompt = `You are synthesising ${groupSummaries.length} section summaries from a book into a higher-level overview (super-group ${sgIdx+1} of ${total}). Preserve all major arguments, ideas, people, frameworks, and examples. Write in plain prose, 6-12 sentences.
+
+${combined}`;
+  return callGemini(apiKey, prompt, SUPER_GROUP_MAX_TOKENS);
+}
+
+async function summariseMaster(inputSummaries, title, apiKey) {
+  const combined = inputSummaries.map((s, i) => `[Section ${i+1}]\n${s}`).join("\n\n---\n\n");
+  const prompt = `You are creating a master overview of the book "${title}" from ${inputSummaries.length} section summaries covering the entire book.
 
 Write a comprehensive master summary that:
 - Covers the complete arc of the book from start to finish
 - Preserves every important concept, argument, and idea
-- Names all key people, thinkers, or characters
+- Names all key people, thinkers, or characters and their significance
 - Notes important examples, case studies, or stories
 - Captures the central lessons and conclusions
-- Stays under 1200 words of plain prose
+- Stays under 1500 words of plain prose
 
 Section summaries:
 ${combined}`;
   return callGemini(apiKey, prompt, MASTER_SUMMARY_MAX_TOKENS);
 }
 
-// Level 4: generate final structured JSON from master summary
-async function generateFinalJson(masterSummary, title, apiKey) {
-  const prompt = `You are a book analyst. Based on the following comprehensive book summary, produce a structured JSON analysis of "${title}".
+async function summariseChapterGroup(chunks, chapterTitle, apiKey) {
+  const combined = chunks.map(c => c.text).join("\n\n");
+  const prompt = `Write a clear summary of this book chapter: "${chapterTitle}". Capture the main arguments, key ideas, important people mentioned, and any notable examples. Write 3-6 sentences of plain prose.
 
-CRITICAL INSTRUCTIONS:
-- Your entire response must be a single valid JSON object
-- Do NOT include markdown formatting of any kind
-- Do NOT use code fences or backticks
-- Do NOT include any text before the opening { or after the closing }
-- Do NOT include explanations or comments
-- The response must begin with { and end with }
-- If a section would be too long, use shorter sentences rather than cutting off the JSON
+Chapter content:
+${combined.slice(0, 6000)}`;
+  return callGemini(apiKey, prompt, CHAPTER_SUMMARY_MAX_TOKENS);
+}
 
-Required JSON structure:
+// ── Split final generation ─────────────────────────────────────────────────────
+
+async function generateSections(masterSummary, title, apiKey) {
+  const prompt = `You are a book analyst. Based on this comprehensive summary of "${title}", extract the main themes and topics.
+
+Return ONLY a JSON object (no markdown, no code fences, start with {, end with }):
 {
   "sections": [
-    { "heading": "Theme or topic name", "points": ["key point", "key point", "key point"] }
-  ],
+    { "heading": "Theme or topic name", "points": ["key point 1", "key point 2", "key point 3"] }
+  ]
+}
+
+Requirements:
+- 20-35 sections covering every major theme, argument, and idea
+- Each section should have 3-5 specific, substantive points
+- Cover the full book, not just the beginning
+
+Book summary:
+${masterSummary}`;
+
+  const raw = await callGemini(apiKey, prompt, SECTION_JSON_MAX_TOKENS, true);
+  let parsed = robustJsonParse(raw);
+  if (!parsed) parsed = await repairJson(raw, apiKey);
+  return ensureFields(parsed, { sections: [] });
+}
+
+async function generateExplained(masterSummary, title, apiKey) {
+  const prompt = `You are a book analyst. Based on this comprehensive summary of "${title}", explain the most important concepts and frameworks.
+
+Return ONLY a JSON object (no markdown, no code fences, start with {, end with }):
+{
   "explained": [
     { "heading": "Concept or idea name", "body": "2-3 sentence explanation of this concept" }
-  ],
+  ]
+}
+
+Requirements:
+- 15-25 entries covering the most important concepts, frameworks, and ideas
+- Explanations should be clear and informative, 2-3 sentences each
+
+Book summary:
+${masterSummary}`;
+
+  const raw = await callGemini(apiKey, prompt, EXPLAINED_JSON_MAX_TOKENS, true);
+  let parsed = robustJsonParse(raw);
+  if (!parsed) parsed = await repairJson(raw, apiKey);
+  return ensureFields(parsed, { explained: [] });
+}
+
+async function generateCharacters(masterSummary, title, apiKey, isNonfiction) {
+  const typeNote = isNonfiction
+    ? "This appears to be a NONFICTION book. Focus on: real people mentioned, authors cited, historical figures, researchers, business leaders, scientists, philosophers. Never invent people."
+    : "This appears to be a FICTION book. Focus on: major characters with their roles, relationships, and key traits. Never invent characters not in the book.";
+
+  const prompt = `You are a book analyst. Based on this comprehensive summary of "${title}", identify all notable people.
+
+${typeNote}
+
+Return ONLY a JSON object (no markdown, no code fences, start with {, end with }):
+{
   "characters": [
     { "name": "Person's name", "role": "Their role or title", "trait": "Their key contribution or significance", "color": "#hex" }
   ]
 }
 
 Requirements:
-- sections: 20-35 entries covering every major theme, argument, and idea in the book
-- explained: 15-25 entries covering the most important concepts, frameworks, and ideas
-- characters: all notable people, authors, researchers, or figures mentioned
-- Each section should have 3-5 specific, substantive points
-- Explanations should be clear and informative, 2-3 sentences each
-- Cover the full book, not just the beginning
+- Only include people explicitly mentioned in the summary
+- Use varied hex colors from this set: #4285f4, #34a853, #fbbc04, #ea4335, #8b5cf6, #06b6d4, #f59e0b, #10b981
+- role: for fiction use character role; for nonfiction use profession/title
+- trait: key contribution, idea they championed, or why they matter to the book
 
-Book summary to analyse:
+Book summary:
 ${masterSummary}`;
 
-  const raw = await callGemini(apiKey, prompt, FINAL_JSON_MAX_TOKENS, true);
+  const raw = await callGemini(apiKey, prompt, CHAR_JSON_MAX_TOKENS, true);
   let parsed = robustJsonParse(raw);
+  if (!parsed) parsed = await repairJson(raw, apiKey);
+  return ensureFields(parsed, { characters: [] });
+}
 
-  if (!parsed) {
-    console.warn("Initial JSON parse failed, attempting repair…");
-    parsed = await repairJson(raw, apiKey);
-  }
+async function generateQuotes(masterSummary, title, apiKey) {
+  const prompt = `You are a book analyst. Based on this comprehensive summary of "${title}", extract the most memorable quotes, principles, frameworks, and key statements.
 
-  return parsed;
+Return ONLY a JSON object (no markdown, no code fences, start with {, end with }):
+{
+  "quotes": [
+    { "text": "The memorable quote, principle, or key statement", "context": "Brief context or attribution (optional)" }
+  ]
+}
+
+Requirements:
+- Extract 10-20 items
+- Include: direct quotes, core principles, memorable frameworks, key arguments
+- For principles/frameworks that aren't direct quotes, paraphrase them clearly
+- context: who said it or what part of the book it comes from (can be empty string)
+
+Book summary:
+${masterSummary}`;
+
+  const raw = await callGemini(apiKey, prompt, QUOTES_JSON_MAX_TOKENS, true);
+  let parsed = robustJsonParse(raw);
+  if (!parsed) parsed = await repairJson(raw, apiKey);
+  return ensureFields(parsed, { quotes: [] });
+}
+
+// Heuristic: is this likely nonfiction?
+function detectNonfiction(text) {
+  const lower = text.toLowerCase();
+  const nonficWords = ["chapter","introduction","conclusion","bibliography","references","research","study","evidence","argument","author","according to","in this book","analysis","framework","theory","experiment","data","historical","throughout history"];
+  const ficWords = ["she said","he said","whispered","replied","smiled","frowned","felt","looked at","walked","ran","heart","love","dream","adventure","quest","sword","magic","kingdom","hero","villain"];
+  let nfScore = 0, fScore = 0;
+  for (const w of nonficWords) if (lower.includes(w)) nfScore++;
+  for (const w of ficWords) if (lower.includes(w)) fScore++;
+  return nfScore >= fScore;
+}
+
+// ── Progress helper for pipeline ──────────────────────────────────────────────
+let _totalSteps = 0, _currentStep = 0;
+function initProgress(total) { _totalSteps = total; _currentStep = 0; }
+function advanceProgress(label) {
+  _currentStep++;
+  const pct = Math.min(97, Math.round((_currentStep / _totalSteps) * 100));
+  setProgress("genFill", "genLabel", pct, label);
 }
 
 // ── Main pipeline ──────────────────────────────────────────────────────────────
-async function runPipeline() {
+async function runPipeline(resumeFrom) {
   const apiKey = getKey();
   if (!apiKey) { showError("Please enter your Gemini API key."); return; }
-  if (!inputText) { showError("Please upload a PDF first."); return; }
+  if (!inputText && !resumeFrom) { showError("Please upload a PDF first."); return; }
 
   clearError();
-  document.getElementById("results").style.display    = "none";
+  document.getElementById("results").style.display     = "none";
   document.getElementById("genProgress").style.display = "block";
-  document.getElementById("runBtn").disabled           = true;
+  document.getElementById("runBtn").disabled            = true;
 
   const title = document.getElementById("bookTitle").value.trim() || "this book";
+  saveCheckpoint(CK_TITLE, title);
 
   try {
-    const chunks = chunkByParagraph(inputText);
-    const totalChunks = chunks.length;
-    let step = 0;
-    const totalSteps = totalChunks + Math.ceil(totalChunks / GROUP_SIZE) + 2;
-
-    function advanceProgress(label) {
-      step++;
-      const pct = Math.min(98, Math.round((step / totalSteps) * 100));
-      setProgress("genFill", "genLabel", pct, label);
+    // ── Determine chunking ─────────────────────────────────────────────────
+    let chunks;
+    if (inputText) {
+      chunks = chunkText(inputText, detectedChapters);
+    } else {
+      // Resume mode: we won't re-chunk but we need a dummy array for counting
+      chunks = [];
     }
 
-    // ── Level 1: chunk summaries (sequential, simple) ──────────────────────
-    setProgress("genFill", "genLabel", 2, `Summarising ${totalChunks} passages…`);
-    const chunkSummaries = [];
-    for (let i = 0; i < chunks.length; i++) {
-      advanceProgress(`Summarising passage ${i+1} of ${totalChunks}…`);
-      const summary = await summariseChunk(chunks[i], i, totalChunks, apiKey);
-      chunkSummaries.push(summary);
+    const totalChunks = chunks.length || 1;
+    const totalGroups = Math.ceil(totalChunks / GROUP_SIZE);
+    const useSuperGroups = totalGroups > SUPER_GROUP_THRESHOLD;
+    const totalSuperGroups = useSuperGroups ? Math.ceil(totalGroups / SUPER_GROUP_SIZE) : 0;
+    const uniqueChapters = [...new Set(chunks.filter(c => c.chapter).map(c => c.chapter))];
+    const hasChapters = uniqueChapters.length >= 2;
+
+    // Estimate total steps
+    const totalSteps = totalChunks + totalGroups + (useSuperGroups ? totalSuperGroups : 0)
+      + 1 /* master */ + (hasChapters ? uniqueChapters.length : 0)
+      + 4 /* sections, explained, chars, quotes */;
+    initProgress(totalSteps);
+
+    // ── Level 1: chunk summaries ───────────────────────────────────────────
+    let chunkSummaries = resumeFrom ? (loadCheckpoint(CK_CHUNK_SUMS) || []) : [];
+    if (chunkSummaries.length < totalChunks && chunks.length > 0) {
+      const startFrom = chunkSummaries.length;
+      setProgress("genFill", "genLabel", 2, `Summarising ${totalChunks} passages…`);
+      for (let i = startFrom; i < chunks.length; i++) {
+        advanceProgress(`Summarising passage ${i+1} of ${totalChunks}…`);
+        const summary = await summariseChunk(chunks[i], i, totalChunks, apiKey);
+        chunkSummaries.push(summary);
+        // Save checkpoint every 5 chunks
+        if (i % 5 === 0) saveCheckpoint(CK_CHUNK_SUMS, chunkSummaries);
+      }
+      saveCheckpoint(CK_CHUNK_SUMS, chunkSummaries);
+      saveCheckpoint(CK_STAGE, 1);
+    } else {
+      _currentStep += totalChunks;
     }
 
     // ── Level 2: group summaries ───────────────────────────────────────────
+    let groupSummaries = resumeFrom ? (loadCheckpoint(CK_GROUP_SUMS) || []) : [];
     const groups = [];
     for (let i = 0; i < chunkSummaries.length; i += GROUP_SIZE) {
       groups.push(chunkSummaries.slice(i, i + GROUP_SIZE));
     }
 
-    const groupSummaries = [];
-    for (let i = 0; i < groups.length; i++) {
-      advanceProgress(`Synthesising group ${i+1} of ${groups.length}…`);
-      const gs = await summariseGroup(groups[i], i, apiKey);
-      groupSummaries.push(gs);
+    if (groupSummaries.length < groups.length) {
+      const startFrom = groupSummaries.length;
+      for (let i = startFrom; i < groups.length; i++) {
+        advanceProgress(`Synthesising group ${i+1} of ${groups.length}…`);
+        const gs = await summariseGroup(groups[i], i, groups.length, apiKey);
+        groupSummaries.push(gs);
+        if (i % 3 === 0) saveCheckpoint(CK_GROUP_SUMS, groupSummaries);
+      }
+      saveCheckpoint(CK_GROUP_SUMS, groupSummaries);
+      saveCheckpoint(CK_STAGE, 2);
+    } else {
+      _currentStep += groups.length;
     }
 
-    // ── Level 3: master summary ────────────────────────────────────────────
-    advanceProgress("Creating master summary…");
-    const masterSummary = await summariseMaster(groupSummaries, title, apiKey);
+    // ── Level 3 (optional): super-group summaries ──────────────────────────
+    let superGroupSummaries = resumeFrom ? (loadCheckpoint(CK_SUPER_SUMS) || []) : [];
+    let finalInputSummaries;
 
-    // ── Level 4: final JSON ────────────────────────────────────────────────
-    advanceProgress("Generating structured analysis…");
-    let result = await generateFinalJson(masterSummary, title, apiKey);
+    if (useSuperGroups) {
+      const superGroups = [];
+      for (let i = 0; i < groupSummaries.length; i += SUPER_GROUP_SIZE) {
+        superGroups.push(groupSummaries.slice(i, i + SUPER_GROUP_SIZE));
+      }
 
-    // Ensure required keys exist (safety net)
-    if (!result || typeof result !== "object") result = {};
-    if (!Array.isArray(result.sections))    result.sections    = [];
-    if (!Array.isArray(result.explained))   result.explained   = [];
-    if (!Array.isArray(result.characters))  result.characters  = [];
+      if (superGroupSummaries.length < superGroups.length) {
+        const startFrom = superGroupSummaries.length;
+        for (let i = startFrom; i < superGroups.length; i++) {
+          advanceProgress(`Super-synthesising section ${i+1} of ${superGroups.length}…`);
+          const sgs = await summariseSuperGroup(superGroups[i], i, superGroups.length, apiKey);
+          superGroupSummaries.push(sgs);
+          saveCheckpoint(CK_SUPER_SUMS, superGroupSummaries);
+        }
+        saveCheckpoint(CK_STAGE, 3);
+      } else {
+        _currentStep += superGroups.length;
+      }
+      finalInputSummaries = superGroupSummaries;
+    } else {
+      finalInputSummaries = groupSummaries;
+    }
+
+    // ── Level 4: master summary ────────────────────────────────────────────
+    let masterSummary = resumeFrom ? loadCheckpoint(CK_MASTER) : null;
+    if (!masterSummary) {
+      advanceProgress("Creating master summary…");
+      masterSummary = await summariseMaster(finalInputSummaries, title, apiKey);
+      saveCheckpoint(CK_MASTER, masterSummary);
+      saveCheckpoint(CK_STAGE, 4);
+    } else {
+      _currentStep++;
+    }
+
+    // ── Chapter summaries ──────────────────────────────────────────────────
+    let chapSummaries = resumeFrom ? (loadCheckpoint(CK_CHAPTER_SUMS) || []) : [];
+    if (hasChapters && chapSummaries.length < uniqueChapters.length) {
+      const startFrom = chapSummaries.length;
+      for (let i = startFrom; i < uniqueChapters.length; i++) {
+        const chTitle = uniqueChapters[i];
+        advanceProgress(`Summarising chapter: ${chTitle}…`);
+        const chChunks = chunks.filter(c => c.chapter === chTitle);
+        const summary = await summariseChapterGroup(chChunks, chTitle, apiKey);
+        chapSummaries.push({ title: chTitle, summary, number: i + 1 });
+        saveCheckpoint(CK_CHAPTER_SUMS, chapSummaries);
+      }
+      saveCheckpoint(CK_STAGE, 5);
+    } else if (!hasChapters) {
+      // Generate chapter summaries from group summaries as fallback
+      chapSummaries = groupSummaries.map((s, i) => ({
+        title: `Section ${i + 1}`,
+        summary: s,
+        number: i + 1
+      }));
+    } else {
+      _currentStep += uniqueChapters.length;
+    }
+
+    // ── Split final generation ─────────────────────────────────────────────
+    const isNonfic = detectNonfiction(inputText || masterSummary);
+
+    advanceProgress("Generating themes and sections…");
+    const sectionsResult  = await generateSections(masterSummary, title, apiKey);
+
+    advanceProgress("Generating concept explanations…");
+    const explainedResult = await generateExplained(masterSummary, title, apiKey);
+
+    advanceProgress("Extracting key people…");
+    const charResult      = await generateCharacters(masterSummary, title, apiKey, isNonfic);
+
+    advanceProgress("Extracting quotes and principles…");
+    const quotesResult    = await generateQuotes(masterSummary, title, apiKey);
 
     setProgress("genFill", "genLabel", 100, "Done!");
+    clearCheckpoint();
 
-    renderResults(result, title);
+    renderResults({
+      sections:   sectionsResult.sections,
+      explained:  explainedResult.explained,
+      characters: charResult.characters,
+      chapters:   chapSummaries,
+      quotes:     quotesResult.quotes
+    }, title);
 
   } catch (err) {
     showError(err.message || "An unexpected error occurred.");
     console.error(err);
+    // Show resume option on failure
+    const stage = loadCheckpoint(CK_STAGE);
+    if (stage && stage > 0) {
+      document.getElementById("resumeMsg").textContent =
+        `⚡ Progress saved at stage ${stage} — resume after fixing the error?`;
+      document.getElementById("resumeBox").style.display = "flex";
+    }
   } finally {
     document.getElementById("runBtn").disabled = false;
     setTimeout(() => { document.getElementById("genProgress").style.display = "none"; }, 1500);
   }
 }
 
+async function resumePipeline() {
+  document.getElementById("resumeBox").style.display = "none";
+  const savedTitle = loadCheckpoint(CK_TITLE);
+  if (savedTitle) document.getElementById("bookTitle").value = savedTitle;
+  document.getElementById("afterUpload").style.display = "block";
+  await runPipeline(true);
+}
+
 // ── Render results ─────────────────────────────────────────────────────────────
 const AVATAR_COLORS = ["#4285f4","#34a853","#fbbc04","#ea4335","#8b5cf6","#06b6d4","#f59e0b","#10b981"];
 
 function renderResults(data, title) {
-  quickData     = data.sections   || [];
-  explainedData = data.explained  || [];
-  charData      = data.characters || [];
+  quickData    = data.sections   || [];
+  explainedData= data.explained  || [];
+  charData     = data.characters || [];
+  chapterData  = data.chapters   || [];
+  quotesData   = data.quotes     || [];
 
   // Quick Ref
   const qc = document.getElementById("quickContent");
@@ -684,6 +1114,38 @@ function renderResults(data, title) {
     });
   }
 
+  // Chapters
+  const chc = document.getElementById("chaptersContent");
+  chc.innerHTML = "";
+  if (chapterData.length === 0) {
+    chc.innerHTML = '<div style="color:#475569;font-size:13px">No chapter data available.</div>';
+  } else {
+    chapterData.forEach(ch => {
+      chc.innerHTML += `
+        <div class="chapter-item">
+          <div class="chapter-num">Chapter ${esc(String(ch.number || ""))}</div>
+          <div class="chapter-name">${esc(ch.title || "")}</div>
+          <div class="chapter-summary">${esc(ch.summary || "")}</div>
+        </div>`;
+    });
+  }
+  document.getElementById("chaptersTitle").textContent = `Chapter Summaries (${chapterData.length})`;
+
+  // Quotes
+  const qcq = document.getElementById("quotesContent");
+  qcq.innerHTML = "";
+  if (quotesData.length === 0) {
+    qcq.innerHTML = '<div style="color:#475569;font-size:13px">No quotes found.</div>';
+  } else {
+    quotesData.forEach(q => {
+      qcq.innerHTML += `
+        <div class="quote-item">
+          <div class="quote-text">"${esc(q.text || "")}"</div>
+          ${q.context ? `<div class="quote-context">— ${esc(q.context)}</div>` : ""}
+        </div>`;
+    });
+  }
+
   document.getElementById("charTitle").textContent = `Key People (${charData.length})`;
   document.getElementById("results").style.display = "block";
   switchTab("quick");
@@ -716,18 +1178,21 @@ async function handleFile(e) {
   document.getElementById("results").style.display       = "none";
   document.getElementById("fileInfo").style.display      = "none";
   document.getElementById("ocrBadge").style.display      = "none";
+  document.getElementById("chapterBadge").style.display  = "none";
   document.getElementById("extractProgress").style.display = "block";
   inputText = "";
+  detectedChapters = [];
 
   try {
-    const { text, usedOCR, pageCount } = await extractPdfText(file);
+    const { text, ocrPageCount, pageCount, chapters } = await extractPdfText(file);
     inputText = text;
+    detectedChapters = chapters;
 
     if (!inputText || inputText.length < 50)
       throw new Error("No readable text found. PDF may be image-based or corrupted.");
 
     const words  = inputText.trim().split(/\s+/).filter(Boolean).length;
-    const chunks = chunkByParagraph(inputText);
+    const chunks = chunkText(inputText, chapters);
     const mins   = Math.round(words / 238);
     const readTime = mins < 1 ? "< 1 min" : mins >= 60
       ? `${Math.floor(mins/60)}h ${mins%60}m` : `${mins} min`;
@@ -736,11 +1201,25 @@ async function handleFile(e) {
       `${words.toLocaleString()} words · ${chunks.length} chunks · ~${readTime} read`;
     document.getElementById("bookTitle").value =
       file.name.replace(/\.pdf$/i,"").replace(/[-_]+/g," ").trim();
-    document.getElementById("fileInfo").style.display  = "flex";
-    document.getElementById("fileName").textContent    = file.name;
-    document.getElementById("pageCount").textContent   = `(${pageCount} page${pageCount !== 1 ? "s" : ""})`;
-    if (usedOCR) document.getElementById("ocrBadge").style.display = "inline-flex";
+    document.getElementById("fileInfo").style.display = "flex";
+    document.getElementById("fileName").textContent   = file.name;
+    document.getElementById("pageCount").textContent  = `(${pageCount} page${pageCount !== 1 ? "s" : ""})`;
+
+    if (ocrPageCount > 0) {
+      const badge = document.getElementById("ocrBadge");
+      badge.textContent = `OCR: ${ocrPageCount} page${ocrPageCount > 1 ? "s" : ""}`;
+      badge.style.display = "inline-flex";
+    }
+    if (chapters.length >= 2) {
+      const cbadge = document.getElementById("chapterBadge");
+      cbadge.textContent = `${chapters.length} chapters detected`;
+      cbadge.style.display = "inline-flex";
+    }
+
     document.getElementById("afterUpload").style.display = "block";
+
+    // Clear any old checkpoint from a different book
+    clearCheckpoint();
   } catch (err) {
     showError(err.message || "Failed to read PDF.");
   } finally {
